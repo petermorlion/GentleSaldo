@@ -1,0 +1,24 @@
+<?php
+
+/**
+* @file
+* A custom module for Gentle Ultimate Frisbee and how much the members have to pay.
+*/
+
+/**
+* Implements hook_help.
+*
+* Displays help and module information.
+*
+* @param path
+*   Which path of the site we're using to display help
+* @param arg
+*   Array that holds the current path as returned from arg() function
+*/
+function gentle_saldo_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#gentle_saldo":
+      return '<p>' . t("A custom module for Gentle Ultimate Frisbee and how much the members have to pay.") . '</p>';
+      break;
+  }
+}
