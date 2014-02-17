@@ -22,3 +22,24 @@ function gentle_saldo_help($path, $arg) {
       break;
   }
 }
+
+/**
+* Implementation of hook_menu
+*/
+function gentle_saldo_menu() {
+    $items['user/%user/saldo'] = array(
+        'title' => t('Saldo'),
+        'page callback' => 'gentle_saldo_show_saldo',
+        'page arguments' => array(1),
+        'access callback' => TRUE,
+        'type' => MENU_LOCAL_TASK,
+        );       
+    return $items;
+}
+
+/**
+* Show the saldo of the current user
+*/
+function gentle_saldo_show_saldo() {
+    return '<p> Hier komt binnenkort je saldo. </p>';
+}
