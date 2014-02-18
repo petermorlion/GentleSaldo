@@ -40,7 +40,7 @@ function gentle_saldo_menu() {
         'description' => 'Configuration for the Gentle saldo system.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_admin'),
-        'access arguments' => array('access administration pages'),
+        'access arguments' => array('access gentle_saldo'),
         'type' => MENU_NORMAL_ITEM,
     );      
     return $items;
@@ -54,6 +54,26 @@ function gentle_saldo_admin_validate($form, &$form_state) {
   if (!valid_email_address($email)) {
     form_set_error('gentle_saldo_email', t('You must enter a valid email address.'));
   }
+}
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the onthisdate module
+*/
+function gentle_saldo_perm() {
+    return array('access gentle_saldo');
+}
+
+/**
+ * Implementation of hook_permission. Provides the permissions so they can be selected on the Permissions page.
+ */
+function gentle_saldo_permission() {
+    return array(
+        'access gentle_saldo' => array(
+            'title' => t('Gentle saldos beheren.'),
+            'description' => t('Instellingen voor het beheren van de saldos, en het beheren zelf.')
+        ) 
+    );
 }
 
 /**
