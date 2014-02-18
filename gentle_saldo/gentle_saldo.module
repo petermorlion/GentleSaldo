@@ -52,12 +52,14 @@ function gentle_saldo_show_saldo() {
 
     $query = "select * from gentle_saldo_update where id = '".$row->id."'";
     $rs = db_query($query);
-    
+
     # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
     }
-    
+
+    $update_id = $row->id;
+
     if (!$update_id) {
         $html = t("Er zijn nog geen saldo's beschikbaar");
         return $html;
