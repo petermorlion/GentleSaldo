@@ -57,8 +57,11 @@ function gentle_saldo_show_saldo() {
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
     }
-
-    $update_id = $row->id;
+    
+    if (!$update_id) {
+        $html = t("Er zijn nog geen saldo's beschikbaar");
+        return $html;
+    }
 
     $html = "";
     $html .= "<h2>Financieel overzicht: update van " . date("d-m-Y", $row->date) . "</h2>"; 
