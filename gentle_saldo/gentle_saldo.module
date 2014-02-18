@@ -34,11 +34,11 @@ function gentle_saldo_menu() {
         'access callback' => TRUE,
         'type' => MENU_LOCAL_TASK,
         ); 
-    $items['admin/config/people/gentle_saldo'] = array(
+    $items['admin/gentle_saldo'] = array(
         'title' => 'Saldos',
         'description' => 'Configuration for the Gentle saldo system.',
-        'page callback' => 'gentle_saldo_admin',
-        'page arguments' => array(''),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('gentle_saldo_admin'),
         'access arguments' => array('access administration pages'),
         'type' => MENU_NORMAL_ITEM,
     );      
