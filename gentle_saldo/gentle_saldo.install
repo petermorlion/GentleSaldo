@@ -18,9 +18,8 @@ function gentle_saldo_schema() {
         'description' => 'Primary Key: Unique saldo update ID.',
       ),
       'date' => array(
-        'type' => 'datetime',
+        'mysql_type' => 'datetime',
         'not null' => TRUE,
-        'default' => 0,
         'description' => 'The date of the saldo update.',
       ),
       'remarks' => array(
@@ -30,8 +29,8 @@ function gentle_saldo_schema() {
         'default' => '',
         'description' => 'The remarks for this round of saldo updates.',
       ),
-    'primary key' => array('id'),
     ),
+    'primary key' => array('id'),
   );
 
   $schema['gentle_saldo_transaction'] = array(
@@ -56,9 +55,8 @@ function gentle_saldo_schema() {
         'description' => 'The {gentle_saldo_update}.id where this transaction if part of.',
       ),
       'date' => array(
-        'type' => 'datetime',
+        'mysql_type' => 'datetime',
         'not null' => TRUE,
-        'default' => 0,
         'description' => 'The date of the transaction.',
       ),
       'amount' => array(
