@@ -66,16 +66,16 @@ function gentle_saldo_show_saldo() {
     }
 
     $html = "";
-    $html .= "<h2>Financieel overzicht: update van " . date("d-m-Y", $row->date) . "</h2>"; 
-    $html .= "<p>Opmerking: " . $row->remarks . "</p>";
+    $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . "</h2>"; 
+    $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
     $html .= "<table class='gentleTable'>\n\t";
 	$html .= "<tr>\n\t";
-	$html .= "<th align='center'>Datum</th>\n\t";
-	$html .= "<th align='right'>Cumul</th>\n\t";
-	$html .= "<th align='right'>Bedrag</th>\n\t";
-	$html .= "<th align='left'>Beschrijving</th>\n\t";
-	$html .= "<th align='left'>Opmerking</th>\n\t";
+	$html .= "<th align='center'>" . t("Datum") . "</th>\n\t";
+	$html .= "<th align='right'>" . t("Cumul") . "</th>\n\t";
+	$html .= "<th align='right'>" . t("Bedrag") . "</th>\n\t";
+	$html .= "<th align='left'>" . t("Beschrijving") . "</th>\n\t";
+	$html .= "<th align='left'>" . t("Opmerkingen") . "</th>\n\t";
 	$html .= "</tr>\n\t";
 
     $query = "select * from gentle_saldo_transaction where gentle_saldo_update_id = '" . $update_id . "' and uid = '" . $user->uid . "' order by datum, id";
@@ -95,7 +95,7 @@ function gentle_saldo_show_saldo() {
 	}
 	
 	$html .= "</table>\n\t<br /><br />";
-	$html .= "<strong>HUIDIG SALDO: $cumul</strong>";
+	$html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";
 
     return $html;
 }
