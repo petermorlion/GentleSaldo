@@ -33,7 +33,15 @@ function gentle_saldo_menu() {
         'page arguments' => array(1),
         'access callback' => TRUE,
         'type' => MENU_LOCAL_TASK,
-        );       
+        ); 
+    $items['admin/config/people/gentle_saldo'] = array(
+        'title' => 'Saldos',
+        'description' => 'Configuration for the Gentle saldo system.',
+        'page callback' => 'gentle_saldo_admin',
+        'page arguments' => array(''),
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );      
     return $items;
 }
 
@@ -98,4 +106,18 @@ function gentle_saldo_show_saldo() {
 	$html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";
 
     return $html;
+}
+
+function gentle_saldo_admin() {
+    $form = array();
+    $form['gentle_saldo_email'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Email sender'),
+        '#default_value' => '',
+        '#size' => 128,
+        '#maxlength' => 128,
+        '#description' => t("The sender of the email"),
+        '#required' => TRUE,
+    );
+    return system_settings_form($form);
 }
