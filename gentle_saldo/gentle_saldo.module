@@ -120,40 +120,43 @@ function gentle_saldo_user_saldo() {
 
     if (!$update_id) {
         $html = t("Er zijn nog geen saldo's beschikbaar");
-        return $html;
+    } else {
+        $html = "";
+        $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . "</h2>"; 
+        $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
+
+        $html .= "<table class='gentleTable'>\n\t";
+	    $html .= "<tr>\n\t";
+	    $html .= "<th align='center'>" . t("Datum") . "</th>\n\t";
+	    $html .= "<th align='right'>" . t("Cumul") . "</th>\n\t";
+	    $html .= "<th align='right'>" . t("Bedrag") . "</th>\n\t";
+	    $html .= "<th align='left'>" . t("Beschrijving") . "</th>\n\t";
+	    $html .= "<th align='left'>" . t("Opmerkingen") . "</th>\n\t";
+	    $html .= "</tr>\n\t";
+
+        $query = "select * from gentle_saldo_transaction where gentle_saldo_update_id = '" . $update_id . "' and uid = '" . $user->uid . "' order by datum, id";
+	    $rs = db_query($query);
+	    $cumul = 0;
+    
+        foreach ($rs as $row) {
+		    $html .= "<tr>\n\t";
+		    $html .= "<td align='center'>" .date("d-m-Y", $row->date) . "</td>\n\t";
+		    $html .= "<td align='right'>" . $cumul . "</td>\n\t";			
+		    $html .= "<td align='right'>" . $row->amount . "</td>\n\t";
+		    $html .= "<td align='left'>" . $row->description . "</td>\n\t";
+		    $html .= "<td align='left'>" . $row->remarks . "</td>\n";
+		    $html .= "</tr>\n";
+
+		    $cumul += $row->bedrag;
+	    }
+	
+	    $html .= "</table>\n\t<br /><br />";
+	    $html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";   
     }
 
-    $html = "";
-    $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . "</h2>"; 
-    $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
+    $html .= "<br /><br />";
 
-    $html .= "<table class='gentleTable'>\n\t";
-	$html .= "<tr>\n\t";
-	$html .= "<th align='center'>" . t("Datum") . "</th>\n\t";
-	$html .= "<th align='right'>" . t("Cumul") . "</th>\n\t";
-	$html .= "<th align='right'>" . t("Bedrag") . "</th>\n\t";
-	$html .= "<th align='left'>" . t("Beschrijving") . "</th>\n\t";
-	$html .= "<th align='left'>" . t("Opmerkingen") . "</th>\n\t";
-	$html .= "</tr>\n\t";
-
-    $query = "select * from gentle_saldo_transaction where gentle_saldo_update_id = '" . $update_id . "' and uid = '" . $user->uid . "' order by datum, id";
-	$rs = db_query($query);
-	$cumul = 0;
-    
-    foreach ($rs as $row) {
-		$html .= "<tr>\n\t";
-		$html .= "<td align='center'>" .date("d-m-Y", $row->date) . "</td>\n\t";
-		$html .= "<td align='right'>" . $cumul . "</td>\n\t";			
-		$html .= "<td align='right'>" . $row->amount . "</td>\n\t";
-		$html .= "<td align='left'>" . $row->description . "</td>\n\t";
-		$html .= "<td align='left'>" . $row->remarks . "</td>\n";
-		$html .= "</tr>\n";
-
-		$cumul += $row->bedrag;
-	}
-	
-	$html .= "</table>\n\t<br /><br />";
-	$html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";
+    $html .= nl2br(variable_get('gentle_saldo_bank_details', ''));
 
     return $html;
 }
@@ -178,7 +181,7 @@ function gentle_saldo_settings() {
         '#title' => t('Bankgegevens'),
         '#default_value' => variable_get('gentle_saldo_bank_details', ''),
         '#maxlength' => 600,
-        '#description' => t("The bank details so members know how and where to transfer the correct amount."),
+        '#description' => t("The bank details so members know how and where to transfer the correct amount. HTML is allowed."),
         '#required' => TRUE,
     );
 
