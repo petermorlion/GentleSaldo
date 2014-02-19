@@ -50,7 +50,7 @@ function gentle_saldo_menu() {
         'page callback' => 'gentle_saldo_management',
         'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
-        'type' => MENU_LOCAL_TASK,
+        'type' => MENU_DEFAULT_LOCAL_TASK,
     );
 
     $items['admin/gentle_saldo/settings'] = array(
