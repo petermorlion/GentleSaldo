@@ -29,7 +29,7 @@ function gentle_saldo_help($path, $arg) {
 function gentle_saldo_menu() {
     $items['user/%user/saldo'] = array(
         'title' => t('Saldo'),
-        'page callback' => 'gentle_saldo_show_saldo',
+        'page callback' => 'gentle_saldo_user_saldo',
         'page arguments' => array(1),
         'access callback' => TRUE,
         'type' => MENU_LOCAL_TASK,
@@ -37,12 +37,31 @@ function gentle_saldo_menu() {
 
     $items['admin/gentle_saldo'] = array(
         'title' => 'Saldos',
-        'description' => 'Configuration for the Gentle saldo system.',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('gentle_saldo_admin'),
+        'description' => 'Management of the Gentle saldo system.',
+        'page callback' => 'gentle_saldo_management',
+        'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
         'type' => MENU_NORMAL_ITEM,
-    );      
+    );
+
+    $items['admin/gentle_saldo/saldos'] = array(
+        'title' => 'Saldos',
+        'description' => 'Management of the Gentle saldo system.',
+        'page callback' => 'gentle_saldo_management',
+        'page arguments' => array(1),
+        'access arguments' => array('access gentle_saldo'),
+        'type' => MENU_LOCAL_TASK,
+    );
+
+    $items['admin/gentle_saldo/settings'] = array(
+        'title' => 'Instellingen',
+        'description' => 'Configuration for the Gentle saldo system.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('gentle_saldo_settings'),
+        'access arguments' => array('access gentle_saldo'),
+        'type' => MENU_LOCAL_TASK,
+    );
+
     return $items;
 }
 
@@ -79,7 +98,7 @@ function gentle_saldo_permission() {
 /**
 * Show the saldo of the current user (needs improvements like using the Drupal DB API,...)
 */
-function gentle_saldo_show_saldo() {
+function gentle_saldo_user_saldo() {
     $row = "";	
     $query = "select max(id) as id from gentle_saldo_update";
     $rs = db_query($query);
@@ -139,7 +158,10 @@ function gentle_saldo_show_saldo() {
     return $html;
 }
 
-function gentle_saldo_admin() {
+/**
+ * The form with settings for the Gentle saldo system.
+ */
+function gentle_saldo_settings() {
     $form = array();
     $form['gentle_saldo_email'] = array(
         '#type' => 'textfield',
@@ -152,4 +174,11 @@ function gentle_saldo_admin() {
     );
 
     return system_settings_form($form);
+}
+
+/**
+ * The page for managing the Gentle saldos
+ */
+function gentle_saldo_management() {
+    return "Management here";
 }
