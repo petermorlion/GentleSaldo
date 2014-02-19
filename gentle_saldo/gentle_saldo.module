@@ -192,5 +192,20 @@ function gentle_saldo_settings() {
  * The page for managing the Gentle saldos
  */
 function gentle_saldo_management() {
-    return "Management here";
+    $html = drupal_get_form('gentle_saldo_update_form');
+    return $html;
+}
+
+/**
+ * Returns the form for updating the saldos
+ */
+function gentle_saldo_update_form() {
+    $form = array();
+    $form['gentle_saldo_update_form_file'] = array(
+        '#type' => 'file', 
+        '#title' => t('Update saldos'),
+        '#description' => t('Upload the saldo text file here.'),
+    );
+
+    return $form;
 }
