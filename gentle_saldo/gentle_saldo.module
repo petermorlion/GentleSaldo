@@ -203,9 +203,43 @@ function gentle_saldo_update_form() {
     $form = array();
     $form['gentle_saldo_update_form_file'] = array(
         '#type' => 'file', 
-        '#title' => t('Update saldos'),
+        '#title' => t('Saldo file'),
         '#description' => t('Upload the saldo text file here.'),
     );
 
+    $form['submit_button'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+    );
+
     return $form;
+}
+
+/**
+ * Validates the form for updating the saldos
+ */
+function gentle_saldo_update_form_validate($form, &$form_state) {
+    
+}
+
+/**
+ * Code executed after submitting the form for updating the saldos
+ */
+function gentle_saldo_update_form_submit($form, &$form_state) {
+    $directory = "public://gentle_saldo";
+    $result = file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS | FILE_CREATE_DIRECTORY);
+    
+    if($result) {
+        $save = file_save_upload('gentle_saldo_update_form_file', array(), $directory, true);
+        
+        if(!$save) {
+            drupal_set_message(t('Error uploading file to !dir.', array('!dir' => $directory)), 'error');
+        } else {
+            drupal_set_message(t('The file (!filename) was successfully uploaded.', array('!filename' => $save->filename)), 'status');
+        }
+
+        //variable_set('date_pic_font', $dir . '/' . $file);
+    } else {
+        drupal_set_message(t('The directory !dir is not accessible. Please contact the site administrator.', array('!dir' => $directory)), 'error');
+    }
 }
