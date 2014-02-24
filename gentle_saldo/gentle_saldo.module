@@ -293,8 +293,47 @@ function gentle_saldo_overview() {
  */
 function gentle_saldo_overview_form() {
     $form = array();
+
+    // TODO: simplify code for getting max(id), also in user page code
+    $row = "";	
+    $query = "select max(id) as id from gentle_saldo_update";
+    $rs = db_query($query);
+
+    # iterate over resultset, will be only once as we call the "max()" function
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $query = "select * from gentle_saldo_update where id = '".$row->id."'";
+    $rs = db_query($query);
+
+    # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $update_id = $row->id;
+
+    $rs = db_query("SELECT g.uid, u.name, SUM(g.amount) as 'total' 
+                    FROM {gentle_saldo_transaction} g
+                        INNER JOIN {users} u ON u.uid = g.uid
+                    WHERE g.gentle_saldo_update_id = :update_id 
+                    GROUP BY g.uid, u.name", array(
+            ':update_id' => $update_id,
+        ));
+
+    $html ='<table><thead><tr><th>' . t('Username') . '</th><th>' . t('Saldo') . '</th></tr></thead>';
+    $html .= '<tbody>';
+    # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+        $html .= '<tr><td>' . $row->name . '</td><td>' . $row->total . '</td></tr>';
+    }
+
+    $html .= '</tbody>';
+
     $form['gentle_saldo_overview_markup'] = array(
-        '#markup' => '<p>Test</p>', 
+        '#markup' => $html, 
     );
 
     $form['submit_button'] = array(
