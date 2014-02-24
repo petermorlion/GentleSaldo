@@ -134,8 +134,11 @@ function gentle_saldo_user_saldo() {
 	    $html .= "<th align='left'>" . t("Opmerkingen") . "</th>\n\t";
 	    $html .= "</tr>\n\t";
 
-        $query = "select * from gentle_saldo_transaction where gentle_saldo_update_id = '" . $update_id . "' and uid = '" . $user->uid . "' order by datum, id";
-	    $rs = db_query($query);
+        $rs = db_query("SELECT * FROM {gentle_saldo_transaction} WHERE gentle_saldo_update_id = :update_id and uid = :uid order by date, id", array(
+            ':update_id' => $update_id,
+            ':uid' => $GLOBALS['user']->uid,
+        ));
+        
 	    $cumul = 0;
     
         foreach ($rs as $row) {
@@ -147,7 +150,7 @@ function gentle_saldo_user_saldo() {
 		    $html .= "<td align='left'>" . $row->remarks . "</td>\n";
 		    $html .= "</tr>\n";
 
-		    $cumul += $row->bedrag;
+		    $cumul += $row->amount;
 	    }
 	
 	    $html .= "</table>\n\t<br /><br />";
@@ -219,7 +222,7 @@ function gentle_saldo_update_form() {
  * Validates the form for updating the saldos
  */
 function gentle_saldo_update_form_validate($form, &$form_state) {
-    
+    // TODO: check if there is a file
 }
 
 /**
@@ -236,10 +239,116 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
             drupal_set_message(t('Error uploading file to !dir.', array('!dir' => $directory)), 'error');
         } else {
             drupal_set_message(t('The file (!filename) was successfully uploaded.', array('!filename' => $save->filename)), 'status');
+            gentle_saldo_update_saldos($save->uri);
         }
 
         //variable_set('date_pic_font', $dir . '/' . $file);
     } else {
         drupal_set_message(t('The directory !dir is not accessible. Please contact the site administrator.', array('!dir' => $directory)), 'error');
     }
+}
+
+/**
+ * Converts a datestring to a timestamp
+ */
+function gentle_saldo_datestring_to_timestamp($datestring) {
+	$tokens = explode(gentle_saldo_delimiter_lookup($datestring), $datestring);
+	$timestamp = mktime(0,0,0,$tokens[1],$tokens[0],$tokens[2]);
+	return $timestamp;
+}
+
+/**
+ * Looks up the delimiter
+ */
+function gentle_saldo_delimiter_lookup($datestring) {
+	return ((count(explode("-", $datestring)) > 1) ? '-' : '/');
+}
+
+/**
+ * Updates all saldos
+ */
+function gentle_saldo_update_saldos($saldoFileUri) {
+    $fp_saldo = fopen($saldoFileUri, 'r');
+    $buffer = 4096;
+    $total_line_counter = 0;
+    $empty_line_counter = 0;
+    $cntr = 0;
+    $header_processed = false;
+    $header = "";
+    $date_update = NULL;
+    $id_update = "";
+    
+    $id_speler = "";
+    $naam_speler = "";
+    $speler_processed = true;
+
+
+    while(($line = fgets($fp_saldo, $buffer)) ){
+	    $total_line_counter++;
+	    $line_stripped = preg_replace("/\t/", "", $line); //alle tabs uit lijn weghalen (voor check op lege lijnen)
+	    if ($line_stripped != "\n" && $line_stripped != "\r\n"){ // als lijn niet leeg is, lijn processen
+		    $tokens = explode("\t", $line);
+		    if($header_processed == false){ // header processen en opslaan in db
+			    if (preg_match("/\tlaatste update:\t/", $line)){
+				    $date_update = gentle_saldo_datestring_to_timestamp($tokens[2]);
+			    }
+			    elseif (preg_match("/.*naam\tdatum\tcumulatief\tbedrag\tthema\tverwijzing\/opmerking.*/", $line)){
+				    $header_processed = true; //header is volledig ingelezen, header schrijven naar db
+                    $id_update = db_insert('gentle_saldo_update')
+                        ->fields(array(
+                            'date' => $date_update,
+                            'remarks' => $header,
+                        ))
+                        ->execute();
+			    }
+			    else {
+				    if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
+					    $header.= htmlspecialchars(trim($line, " \t"),ENT_QUOTES, "cp1252");
+				    }
+			    }
+		    }
+		    else { //header is geprocessed, nu transacties inlezen en schrijven naar db
+                if (trim($tokens[2]) == "totaal"){
+				    $speler_processed = true;
+			    }
+			    else {
+				    if ($speler_processed == true){
+					    $id_speler = htmlspecialchars(trim($tokens[0]), ENT_QUOTES, "cp1252");
+					    $naam_speler = htmlspecialchars(trim($tokens[1]), ENT_QUOTES, "cp1252");
+					    $speler_processed = false;
+				    }
+
+				    $datum = gentle_saldo_datestring_to_timestamp($tokens[2]);
+				    $bedrag = htmlspecialchars(trim(str_replace(",",".",$tokens[4])), ENT_QUOTES, "cp1252");
+				    $beschrijving = htmlspecialchars(trim($tokens[5]), ENT_QUOTES, "cp1252");
+				    $opmerking = htmlspecialchars(trim($tokens[6]), ENT_QUOTES, "cp1252");
+
+                    if ($id_speler == '') {
+                        continue; // TODO: counter on how many were empty?
+                    }
+
+                    if (!user_load($id_speler)) {
+                        continue; // TODO: counter on how many were skipped?
+                    }
+
+                    db_insert('gentle_saldo_transaction')
+                        ->fields(array(
+                            'uid' => $id_speler,
+                            'gentle_saldo_update_id' => $id_update,
+                            'date' => $datum,
+                            'amount' => $bedrag,
+                            'description' => $beschrijving,
+                            'remarks' => $opmerking,
+                        ))
+                        ->execute();
+				    $cntr++;			
+			    }
+		    }
+	    }
+	    else $empty_line_counter++;
+    }
+    
+    fclose($fp_saldo);
+    drupal_set_message(t('Added !counter records from !total_rows (!empty_rows empty rows).', 
+        array('!counter' => $cntr, '!total_rows' => $total_line_counter, '!empty_rows' => $empty_line_counter)), 'status');
 }
