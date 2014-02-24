@@ -36,25 +36,34 @@ function gentle_saldo_menu() {
         ); 
 
     $items['admin/gentle_saldo'] = array(
-        'title' => 'Saldos',
-        'description' => 'Management of the Gentle saldo system.',
-        'page callback' => 'gentle_saldo_management',
+        'title' => 'Overzicht',
+        'description' => 'Overview of the Gentle saldos.',
+        'page callback' => 'gentle_saldo_overview',
         'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
         'type' => MENU_NORMAL_ITEM,
     );
-
-    $items['admin/gentle_saldo/saldos'] = array(
-        'title' => 'Saldos',
-        'description' => 'Management of the Gentle saldo system.',
-        'page callback' => 'gentle_saldo_management',
+    
+    $items['admin/gentle_saldo/overview'] = array(
+        'title' => 'Overzicht',
+        'description' => 'Overview of the Gentle saldos.',
+        'page callback' => 'gentle_saldo_overview',
         'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
         'type' => MENU_DEFAULT_LOCAL_TASK,
     );
 
+    $items['admin/gentle_saldo/update'] = array(
+        'title' => 'Upload',
+        'description' => 'Upload the saldos.',
+        'page callback' => 'gentle_saldo_update',
+        'page arguments' => array(1),
+        'access arguments' => array('access gentle_saldo'),
+        'type' => MENU_LOCAL_TASK,
+    );
+
     $items['admin/gentle_saldo/settings'] = array(
-        'title' => 'Instellingen',
+        'title' => 'Settings',
         'description' => 'Configuration for the Gentle saldo system.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_settings'),
@@ -63,16 +72,6 @@ function gentle_saldo_menu() {
     );
 
     return $items;
-}
-
-/**
- * Implementation of hook_admin_validate
- */
-function gentle_saldo_admin_validate($form, &$form_state) {
-  $email = $form_state['values']['gentle_saldo_email'];
-  if (!valid_email_address($email)) {
-    form_set_error('gentle_saldo_email', t('You must enter a valid email address.'));
-  }
 }
 
 /**
@@ -178,7 +177,35 @@ function gentle_saldo_settings() {
         '#description' => t("The sender of the email members will receive with their saldo update."),
         '#required' => TRUE,
     );
+
+    $form['gentle_saldo_email_subject'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Email subject'),
+        '#default_value' => variable_get('gentle_saldo_email_subject', 'Gentle Saldo Update'),
+        '#size' => 128,
+        '#maxlength' => 128,
+        '#description' => t("The subject of the email members will receive with their saldo update."),
+        '#required' => TRUE,
+    );
+
+    $form['gentle_saldo_email_body_plain'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Email body (non-HTML)'),
+        '#default_value' => variable_get('gentle_saldo_email_body_plain', ''),
+        '#maxlength' => 4096,
+        '#description' => t("The body of the email members will receive with their saldo update, if their mail client doesn't support HTML."),
+        '#required' => FALSE,
+    );
     
+    $form['gentle_saldo_email_body_html'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Email body (HTML)'),
+        '#default_value' => variable_get('gentle_saldo_email_body_html', ''),
+        '#maxlength' => 4096,
+        '#description' => t("The body of the email members will receive with their saldo update, if their mail client supports HTML."),
+        '#required' => FALSE,
+    );
+
     $form['gentle_saldo_bank_details'] = array(
         '#type' => 'textarea',
         '#title' => t('Bankgegevens'),
@@ -192,19 +219,25 @@ function gentle_saldo_settings() {
 }
 
 /**
- * The page for managing the Gentle saldos
+ * Implementation of hook_admin_validate
  */
-function gentle_saldo_management() {
-    $html = drupal_get_form('gentle_saldo_update_form');
-    return $html;
+function gentle_saldo_settings_validate($form, &$form_state) {
+    $email = $form_state['values']['gentle_saldo_email'];
+    if (!valid_email_address($email)) {
+        form_set_error('gentle_saldo_email', t('You must enter a valid email address.'));
+    }
 }
 
 /**
- * Returns the form for updating the saldos
+ * The page for managing the Gentle saldos
  */
+function gentle_saldo_update() {
+    return drupal_get_form('gentle_saldo_update_form');
+}
+
 function gentle_saldo_update_form() {
     $form = array();
-    $form['gentle_saldo_update_form_file'] = array(
+    $form['gentle_saldo_update_file'] = array(
         '#type' => 'file', 
         '#title' => t('Saldo file'),
         '#description' => t('Upload the saldo text file here.'),
@@ -233,7 +266,7 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
     $result = file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS | FILE_CREATE_DIRECTORY);
     
     if($result) {
-        $save = file_save_upload('gentle_saldo_update_form_file', array(), $directory, true);
+        $save = file_save_upload('gentle_saldo_update_file', array(), $directory, true);
         
         if(!$save) {
             drupal_set_message(t('Error uploading file to !dir.', array('!dir' => $directory)), 'error');
@@ -246,6 +279,37 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
     } else {
         drupal_set_message(t('The directory !dir is not accessible. Please contact the site administrator.', array('!dir' => $directory)), 'error');
     }
+}
+
+/**
+ * The overview page for the saldos.
+ */
+function gentle_saldo_overview() {
+    return drupal_get_form('gentle_saldo_overview_form');
+}
+
+/**
+ * Returns the form with the overview of the saldos and for sending the mail.
+ */
+function gentle_saldo_overview_form() {
+    $form = array();
+    $form['gentle_saldo_overview_markup'] = array(
+        '#markup' => '<p>Test</p>', 
+    );
+
+    $form['submit_button'] = array(
+        '#type' => 'submit',
+        '#value' => t('Send mails'),
+    );
+
+    return $form;
+}
+
+/**
+ * Code executed after submitting the overview form.
+ */
+function gentle_saldo_overview_form_submit($form, &$form_state) {
+    drupal_set_message(t('The mail was not sent because this feature hasn\'t been implemented yet.'), 'status');
 }
 
 /**
