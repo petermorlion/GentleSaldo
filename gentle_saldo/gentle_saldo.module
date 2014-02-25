@@ -327,7 +327,7 @@ function gentle_saldo_overview_form() {
     # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
-        $html .= '<tr><td>' . $row->name . '</td><td>' . $row->total . '</td></tr>';
+        $html .= '<tr><td>' . $row->name . '</td><td>' . round($row->total, 2) . '</td></tr>';
     }
 
     $html .= '</tbody>';
