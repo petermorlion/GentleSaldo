@@ -98,6 +98,13 @@ function gentle_saldo_permission() {
 * Show the saldo of the current user (needs improvements like using the Drupal DB API,...)
 */
 function gentle_saldo_user_saldo() {
+    return gentle_saldo_user_saldo_html($GLOBALS['user']->uid);
+}
+
+/**
+ * Returns the HTML for the user saldo.
+ */
+function gentle_saldo_user_saldo_html($uid) {
     $row = "";	
     $query = "select max(id) as id from gentle_saldo_update";
     $rs = db_query($query);
@@ -135,7 +142,7 @@ function gentle_saldo_user_saldo() {
 
         $rs = db_query("SELECT * FROM {gentle_saldo_transaction} WHERE gentle_saldo_update_id = :update_id and uid = :uid order by date, id", array(
             ':update_id' => $update_id,
-            ':uid' => $GLOBALS['user']->uid,
+            ':uid' => $uid,
         ));
         
 	    $cumul = 0;
@@ -348,7 +355,90 @@ function gentle_saldo_overview_form() {
  * Code executed after submitting the overview form.
  */
 function gentle_saldo_overview_form_submit($form, &$form_state) {
-    drupal_set_message(t('The mail was not sent because this feature hasn\'t been implemented yet.'), 'status');
+    // TODO: remove
+    ini_set('SMTP', 'aspmx.l.google.com'); 
+    ini_set('smtp_port', 25);
+    
+    // TODO: simplify code for getting max(id), also in user page code
+    $row = "";	
+    $query = "select max(id) as id from gentle_saldo_update";
+    $rs = db_query($query);
+
+    # iterate over resultset, will be only once as we call the "max()" function
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $query = "select * from gentle_saldo_update where id = '".$row->id."'";
+    $rs = db_query($query);
+
+    # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $update_id = $row->id;
+
+    // TODO: this means only one query, but we're re-using the function for the HTML which does a query per user
+    $rs = db_query("SELECT g.uid, u.name, u.mail, g.amount, g.date
+                    FROM {gentle_saldo_transaction} g
+                        INNER JOIN {users} u ON u.uid = g.uid
+                    WHERE g.gentle_saldo_update_id = :update_id 
+                    ORDER BY g.uid, g.date", array(
+            ':update_id' => $update_id,
+        ));
+
+    $number = 0;
+    $errorNumber = 0;
+    $rows = array();
+    $firstRecord = TRUE; // TODO: must be a better way, $currentuid = $rs[0]->uid doesn't work
+    $currentuid = NULL;
+    foreach($rs as $row) {
+        if ($firstRecord) {
+            $currentuid = $row->uid;
+            $firstRecord = FALSE;
+        }
+
+        if ($row->uid === $currentuid) {
+            $rows[] = $row;
+        } else {
+            $params['rows'] = $rows;
+            $params['uid'] = $currentuid;
+            $message = drupal_mail('gentle_saldo', 'update', $row->mail, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
+            // TODO: counter of successful/unsuccessful emails
+            $number++;
+
+            $currentuid = $row->uid;
+            $rows = array();
+            $rows[] = $row;
+        }
+    }
+
+    // TODO: must be a better solution for this
+    // Send last mail
+    if (count($rows) > 0) {
+        $params['rows'] = $rows;
+        $params['uid'] = $currentuid;
+        $message = drupal_mail('gentle_saldo', 'update', $row->mail, 'nl', $params, variable_get('gentle_saldo_email'), TRUE);
+        // TODO: counter of successful/unsuccessful emails
+        $number++;
+
+        drupal_set_message('Test' . $message['result'], 'status');
+    }
+
+    drupal_set_message(t('Sent out !number mails successfully, !errorNumber were unsuccessful.', 
+                            array('!number' => $number,
+                                  '!errorNumber' => $errorNumber)), 'status');
+}
+
+/**
+ * The saldo mail for users.
+ */
+function gentle_saldo_mail($key, &$message, $params) {
+    $message['subject'] = variable_get('gentle_saldo_email_subject');
+    $message['body'][] = variable_get('gentle_saldo_email_body_html');
+    $message['body'][] = gentle_saldo_user_saldo_html($params['uid']);;
+    $message['body'][] = variable_get('gentle_saldo_bank_details');
 }
 
 /**
