@@ -131,14 +131,13 @@ function gentle_saldo_user_saldo_html($uid) {
         $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . "</h2>"; 
         $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
-        $html .= "<table class='gentleTable'>\n\t";
-	    $html .= "<tr>\n\t";
-	    $html .= "<th align='center'>" . t("Datum") . "</th>\n\t";
-	    $html .= "<th align='right'>" . t("Cumul") . "</th>\n\t";
-	    $html .= "<th align='right'>" . t("Bedrag") . "</th>\n\t";
-	    $html .= "<th align='left'>" . t("Beschrijving") . "</th>\n\t";
-	    $html .= "<th align='left'>" . t("Opmerkingen") . "</th>\n\t";
-	    $html .= "</tr>\n\t";
+        $html .= "<table><thead><tr>";
+	    $html .= "<th align='center'>" . t("Datum") . "</th>";
+	    $html .= "<th align='right'>" . t("Cumul") . "</th>";
+	    $html .= "<th align='right'>" . t("Bedrag") . "</th>";
+	    $html .= "<th align='left'>" . t("Beschrijving") . "</th>";
+	    $html .= "<th align='left'>" . t("Opmerkingen") . "</th>";
+	    $html .= "</tr></thead><tbody>";
 
         $rs = db_query("SELECT * FROM {gentle_saldo_transaction} WHERE gentle_saldo_update_id = :update_id and uid = :uid order by date, id", array(
             ':update_id' => $update_id,
@@ -146,20 +145,30 @@ function gentle_saldo_user_saldo_html($uid) {
         ));
         
 	    $cumul = 0;
+        $index = 0;
+        $rowclass = 'even';
     
         foreach ($rs as $row) {
-		    $html .= "<tr>\n\t";
-		    $html .= "<td align='center'>" .date("d-m-Y", $row->date) . "</td>\n\t";
-		    $html .= "<td align='right'>" . $cumul . "</td>\n\t";			
-		    $html .= "<td align='right'>" . $row->amount . "</td>\n\t";
-		    $html .= "<td align='left'>" . $row->description . "</td>\n\t";
-		    $html .= "<td align='left'>" . $row->remarks . "</td>\n";
-		    $html .= "</tr>\n";
+            if ($index % 2 == 0) {
+                $rowclass = 'even';
+            } else {
+                $rowclass = 'odd';
+            }
+
+		    $html .= "<tr class='" . $rowclass ."'>";
+		    $html .= "<td align='center'>" .date("d-m-Y", $row->date) . "</td>";
+		    $html .= "<td align='right'>" . $cumul . "</td>";			
+		    $html .= "<td align='right'>" . $row->amount . "</td>";
+		    $html .= "<td align='left'>" . $row->description . "</td>";
+		    $html .= "<td align='left'>" . $row->remarks . "</td>";
+		    $html .= "</tr>";
 
 		    $cumul += $row->amount;
+
+            $index++;
 	    }
 	
-	    $html .= "</table>\n\t<br /><br />";
+	    $html .= "</tbody></table><br /><br />";
 	    $html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";   
     }
 
