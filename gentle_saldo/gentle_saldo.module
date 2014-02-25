@@ -339,6 +339,12 @@ function gentle_saldo_overview_form() {
 
     $html .= '</tbody>';
 
+    $form['gentle_saldo_debug'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Debug-mode'),
+        '#description' => t('Sends emails to a single address for testing purposes'),
+    );
+
     $form['gentle_saldo_overview_markup'] = array(
         '#markup' => $html, 
     );
@@ -355,10 +361,6 @@ function gentle_saldo_overview_form() {
  * Code executed after submitting the overview form.
  */
 function gentle_saldo_overview_form_submit($form, &$form_state) {
-    // TODO: remove
-    ini_set('SMTP', 'aspmx.l.google.com'); 
-    ini_set('smtp_port', 25);
-    
     // TODO: simplify code for getting max(id), also in user page code
     $row = "";	
     $query = "select max(id) as id from gentle_saldo_update";
@@ -404,7 +406,16 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
         } else {
             $params['rows'] = $rows;
             $params['uid'] = $currentuid;
-            $message = drupal_mail('gentle_saldo', 'update', $row->mail, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
+            
+            $to = $row->mail;
+            // TODO: remove
+            if ($form_state['values']['gentle_saldo_debug']) {
+                ini_set('SMTP', 'aspmx.l.google.com'); 
+                ini_set('smtp_port', 25);
+                $to = 'peter.morlion@gmail.com';
+            }
+
+            $message = drupal_mail('gentle_saldo', 'update', $to, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
             // TODO: counter of successful/unsuccessful emails
             $number++;
 
@@ -419,11 +430,18 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
     if (count($rows) > 0) {
         $params['rows'] = $rows;
         $params['uid'] = $currentuid;
-        $message = drupal_mail('gentle_saldo', 'update', $row->mail, 'nl', $params, variable_get('gentle_saldo_email'), TRUE);
+        
+        $to = $row->mail;
+        // TODO: remove
+        if ($form_state['values']['gentle_saldo_debug']) {
+            ini_set('SMTP', 'aspmx.l.google.com'); 
+            ini_set('smtp_port', 25);
+            $to = 'peter.morlion@gmail.com';
+        }
+        
+        $message = drupal_mail('gentle_saldo', 'update', $to, 'nl', $params, variable_get('gentle_saldo_email'), TRUE);
         // TODO: counter of successful/unsuccessful emails
         $number++;
-
-        drupal_set_message('Test' . $message['result'], 'status');
     }
 
     drupal_set_message(t('Sent out !number mails successfully, !errorNumber were unsuccessful.', 
@@ -437,8 +455,7 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
 function gentle_saldo_mail($key, &$message, $params) {
     $message['subject'] = variable_get('gentle_saldo_email_subject');
     $message['body'][] = variable_get('gentle_saldo_email_body_html');
-    $message['body'][] = gentle_saldo_user_saldo_html($params['uid']);;
-    $message['body'][] = variable_get('gentle_saldo_bank_details');
+    $message['body'][] = gentle_saldo_user_saldo_html($params['uid']);
 }
 
 /**
