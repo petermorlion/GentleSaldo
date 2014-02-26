@@ -424,66 +424,31 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
     $update_id = $row->id;
 
     // TODO: this means only one query, but we're re-using the function for the HTML which does a query per user
-    $rs = db_query("SELECT g.uid, u.name, u.mail, g.amount, g.date
+    $rs = db_query("SELECT DISTINCT g.uid, u.mail
                     FROM {gentle_saldo_transaction} g
                         INNER JOIN {users} u ON u.uid = g.uid
-                    WHERE g.gentle_saldo_update_id = :update_id 
-                    ORDER BY g.uid, g.date", array(
+                    WHERE g.gentle_saldo_update_id = :update_id", array(
             ':update_id' => $update_id,
         ));
 
     $successNumber = 0;
     $errorNumber = 0;
-    $rows = array();
-    $firstRecord = TRUE; // TODO: must be a better way, $currentuid = $rs[0]->uid doesn't work
-    $currentuid = NULL;
+    
     foreach($rs as $row) {
         if ($form_state['values']['gentle_saldo_debug'] && $successNumber > 4) {
             break;
         }
 
-        if ($firstRecord) {
-            $currentuid = $row->uid;
-            $firstRecord = FALSE;
-        }
-
-        if ($row->uid === $currentuid) {
-            $rows[] = $row;
-        } else {
-            $params['rows'] = $rows;
-            $params['uid'] = $currentuid;
+        $params['uid'] = $row->uid;
             
-            $to = $row->mail;
-            if ($form_state['values']['gentle_saldo_debug']) {
-                ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']); 
-                ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
-                $to = $form_state['values']['gentle_saldo_debug_to'];
-            }
-
-            $message = drupal_mail('gentle_saldo', 'update', $to, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
-            // TODO: counter of successful/unsuccessful emails
-            $successNumber++;
-
-            $currentuid = $row->uid;
-            $rows = array();
-            $rows[] = $row;
-        }
-    }
-
-    // TODO: must be a better solution for this
-    // Send last mail
-    if (count($rows) > 0) {
-        $params['rows'] = $rows;
-        $params['uid'] = $currentuid;
-        
         $to = $row->mail;
         if ($form_state['values']['gentle_saldo_debug']) {
             ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']); 
             ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
             $to = $form_state['values']['gentle_saldo_debug_to'];
         }
-        
-        $message = drupal_mail('gentle_saldo', 'update', $to, 'nl', $params, variable_get('gentle_saldo_email'), TRUE);
+
+        $message = drupal_mail('gentle_saldo', 'update', $to, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
         // TODO: counter of successful/unsuccessful emails
         $successNumber++;
     }
