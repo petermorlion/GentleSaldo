@@ -76,10 +76,10 @@ function gentle_saldo_menu() {
 
 /**
 * Valid permissions for this module
-* @return array An array of valid permissions for the onthisdate module
+* @return array An array of valid permissions for the gentle_saldo module
 */
 function gentle_saldo_perm() {
-    return array('access gentle_saldo');
+    return array('access gentle_saldo', 'debug gentle_saldo');
 }
 
 /**
@@ -88,8 +88,12 @@ function gentle_saldo_perm() {
 function gentle_saldo_permission() {
     return array(
         'access gentle_saldo' => array(
-            'title' => t('Gentle saldos beheren.'),
-            'description' => t('Instellingen voor het beheren van de saldos, en het beheren zelf.')
+            'title' => t('Manage Gentle saldos.'),
+            'description' => t('Manage the saldos of Gentle members, send mails, change settings.')
+        ),
+        'debug gentle_saldo' => array(
+            'title' => t('Debug Gentle saldos.'),
+            'description' => t('Debugging Gentle saldos.')
         ) 
     );
 }
@@ -341,18 +345,47 @@ function gentle_saldo_overview_form() {
     $html ='<table><thead><tr><th>' . t('Username') . '</th><th>' . t('Saldo') . '</th></tr></thead>';
     $html .= '<tbody>';
     # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
+    $index = 0;
+    $rowclass = 'even';
     foreach ($rs as $rs_item) {
+        if ($index % 2 == 0) {
+            $rowclass = 'even';
+        } else {
+            $rowclass = 'odd';
+        }
+
 	    $row = $rs_item;
-        $html .= '<tr><td>' . $row->name . '</td><td>' . round($row->total, 2) . '</td></tr>';
+        $html .= '<tr class="' . $rowclass . '"><td>' . $row->name . '</td><td>' . round($row->total, 2) . '</td></tr>';
+        $index++;
     }
 
-    $html .= '</tbody>';
+    $html .= '</tbody></table>';
 
-    $form['gentle_saldo_debug'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Debug-mode'),
-        '#description' => t('Sends emails to a single address for testing purposes'),
-    );
+    if (user_access('debug gentle_saldo')) {
+        $form['gentle_saldo_debug'] = array(
+            '#type' => 'checkbox',
+            '#title' => t('Debug-mode'),
+            '#description' => t('Sends emails to a single address for testing purposes'),
+        );
+
+        $form['gentle_saldo_debug_to'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Send debug mails to'),
+            '#description' => t('Sends 4 debug mails to this address.'),
+        );
+
+        $form['gentle_saldo_debug_smtp'] = array(
+            '#type' => 'textfield',
+            '#title' => t('SMTP server for debugging'),
+            '#description' => t('The SMTP server to use for debugging. This must be a server that doesn\'t require authentication.
+                                 You can use aspmx.l.google.com (with port 25) without authentication if you are sending to a GMail address.'),
+        );
+
+        $form['gentle_saldo_debug_port'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Port for SMTP server for debugging'),
+        );
+    }
 
     $form['gentle_saldo_overview_markup'] = array(
         '#markup' => $html, 
@@ -399,12 +432,16 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
             ':update_id' => $update_id,
         ));
 
-    $number = 0;
+    $successNumber = 0;
     $errorNumber = 0;
     $rows = array();
     $firstRecord = TRUE; // TODO: must be a better way, $currentuid = $rs[0]->uid doesn't work
     $currentuid = NULL;
     foreach($rs as $row) {
+        if ($form_state['values']['gentle_saldo_debug'] && $successNumber > 4) {
+            break;
+        }
+
         if ($firstRecord) {
             $currentuid = $row->uid;
             $firstRecord = FALSE;
@@ -417,16 +454,15 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
             $params['uid'] = $currentuid;
             
             $to = $row->mail;
-            // TODO: remove
             if ($form_state['values']['gentle_saldo_debug']) {
-                ini_set('SMTP', 'aspmx.l.google.com'); 
-                ini_set('smtp_port', 25);
-                $to = 'peter.morlion@gmail.com';
+                ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']); 
+                ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
+                $to = $form_state['values']['gentle_saldo_debug_to'];
             }
 
             $message = drupal_mail('gentle_saldo', 'update', $to, NULL, $params, variable_get('gentle_saldo_email'), TRUE);
             // TODO: counter of successful/unsuccessful emails
-            $number++;
+            $successNumber++;
 
             $currentuid = $row->uid;
             $rows = array();
@@ -441,21 +477,27 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
         $params['uid'] = $currentuid;
         
         $to = $row->mail;
-        // TODO: remove
         if ($form_state['values']['gentle_saldo_debug']) {
-            ini_set('SMTP', 'aspmx.l.google.com'); 
-            ini_set('smtp_port', 25);
-            $to = 'peter.morlion@gmail.com';
+            ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']); 
+            ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
+            $to = $form_state['values']['gentle_saldo_debug_to'];
         }
         
         $message = drupal_mail('gentle_saldo', 'update', $to, 'nl', $params, variable_get('gentle_saldo_email'), TRUE);
         // TODO: counter of successful/unsuccessful emails
-        $number++;
+        $successNumber++;
     }
 
-    drupal_set_message(t('Sent out !number mails successfully, !errorNumber were unsuccessful.', 
-                            array('!number' => $number,
+    if ($form_state['values']['gentle_saldo_debug']) {
+        drupal_set_message(t('Sent out !successNumber debugging mails successfully, !errorNumber were unsuccessful. 
+                              No actual members received an email, because you selected debug-mode.', 
+                            array('!successNumber' => $successNumber,
                                   '!errorNumber' => $errorNumber)), 'status');
+    } else {
+        drupal_set_message(t('Sent out !successNumber mails successfully, !errorNumber were unsuccessful.', 
+                            array('!successNumber' => $successNumber,
+                                  '!errorNumber' => $errorNumber)), 'status');
+    }
 }
 
 /**
