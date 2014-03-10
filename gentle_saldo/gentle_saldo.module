@@ -455,8 +455,11 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
             
         $to = $row->mail;
         if ($form_state['values']['gentle_saldo_debug']) {
-            ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']); 
-            ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
+            if ($form_state['values']['gentle_saldo_debug_smtp'] != '') {
+                ini_set('SMTP', $form_state['values']['gentle_saldo_debug_smtp']);
+                ini_set('smtp_port', $form_state['values']['gentle_saldo_debug_port']);
+            }
+            
             $to = $form_state['values']['gentle_saldo_debug_to'];
         }
 
@@ -520,73 +523,76 @@ function gentle_saldo_update_saldos($saldoFileUri) {
     $naam_speler = "";
     $speler_processed = true;
 
+    try {
+        while(($line = fgets($fp_saldo, $buffer)) ){
+	        $total_line_counter++;
+	        $line_stripped = preg_replace("/\t/", "", $line); //alle tabs uit lijn weghalen (voor check op lege lijnen)
+	        if ($line_stripped != "\n" && $line_stripped != "\r\n"){ // als lijn niet leeg is, lijn processen
+		        $tokens = explode("\t", $line);
+		        if($header_processed == false){ // header processen en opslaan in db
+			        if (preg_match("/\tlaatste update:\t/", $line)){
+				        $date_update = gentle_saldo_datestring_to_timestamp($tokens[2]);
+			        }
+			        elseif (preg_match("/.*naam\tdatum\tcumulatief\tbedrag\tthema\tverwijzing\/opmerking.*/", $line)){
+				        $header_processed = true; //header is volledig ingelezen, header schrijven naar db
+                        $id_update = db_insert('gentle_saldo_update')
+                            ->fields(array(
+                                'date' => $date_update,
+                                'remarks' => $header,
+                            ))
+                            ->execute();
+			        }
+			        else {
+				        if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
+					        $header.= htmlspecialchars(trim($line, " \t"),ENT_QUOTES, "cp1252");
+				        }
+			        }
+		        }
+		        else { //header is geprocessed, nu transacties inlezen en schrijven naar db
+                    if (trim($tokens[2]) == "totaal"){
+				        $speler_processed = true;
+			        }
+			        else {
+				        if ($speler_processed == true){
+					        $id_speler = htmlspecialchars(trim($tokens[0]), ENT_QUOTES, "cp1252");
+					        $naam_speler = htmlspecialchars(trim($tokens[1]), ENT_QUOTES, "cp1252");
+					        $speler_processed = false;
+				        }
 
-    while(($line = fgets($fp_saldo, $buffer)) ){
-	    $total_line_counter++;
-	    $line_stripped = preg_replace("/\t/", "", $line); //alle tabs uit lijn weghalen (voor check op lege lijnen)
-	    if ($line_stripped != "\n" && $line_stripped != "\r\n"){ // als lijn niet leeg is, lijn processen
-		    $tokens = explode("\t", $line);
-		    if($header_processed == false){ // header processen en opslaan in db
-			    if (preg_match("/\tlaatste update:\t/", $line)){
-				    $date_update = gentle_saldo_datestring_to_timestamp($tokens[2]);
-			    }
-			    elseif (preg_match("/.*naam\tdatum\tcumulatief\tbedrag\tthema\tverwijzing\/opmerking.*/", $line)){
-				    $header_processed = true; //header is volledig ingelezen, header schrijven naar db
-                    $id_update = db_insert('gentle_saldo_update')
-                        ->fields(array(
-                            'date' => $date_update,
-                            'remarks' => $header,
-                        ))
-                        ->execute();
-			    }
-			    else {
-				    if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
-					    $header.= htmlspecialchars(trim($line, " \t"),ENT_QUOTES, "cp1252");
-				    }
-			    }
-		    }
-		    else { //header is geprocessed, nu transacties inlezen en schrijven naar db
-                if (trim($tokens[2]) == "totaal"){
-				    $speler_processed = true;
-			    }
-			    else {
-				    if ($speler_processed == true){
-					    $id_speler = htmlspecialchars(trim($tokens[0]), ENT_QUOTES, "cp1252");
-					    $naam_speler = htmlspecialchars(trim($tokens[1]), ENT_QUOTES, "cp1252");
-					    $speler_processed = false;
-				    }
+				        $datum = gentle_saldo_datestring_to_timestamp($tokens[2]);
+				        $bedrag = htmlspecialchars(trim(str_replace(",",".",$tokens[4])), ENT_QUOTES, "cp1252");
+				        $beschrijving = htmlspecialchars(trim($tokens[5]), ENT_QUOTES, "cp1252");
+				        $opmerking = htmlspecialchars(trim($tokens[6]), ENT_QUOTES, "cp1252");
 
-				    $datum = gentle_saldo_datestring_to_timestamp($tokens[2]);
-				    $bedrag = htmlspecialchars(trim(str_replace(",",".",$tokens[4])), ENT_QUOTES, "cp1252");
-				    $beschrijving = htmlspecialchars(trim($tokens[5]), ENT_QUOTES, "cp1252");
-				    $opmerking = htmlspecialchars(trim($tokens[6]), ENT_QUOTES, "cp1252");
+                        if ($id_speler == '') {
+                            continue; // TODO: counter on how many were empty?
+                        }
 
-                    if ($id_speler == '') {
-                        continue; // TODO: counter on how many were empty?
-                    }
+                        if (!user_load($id_speler)) {
+                            continue; // TODO: counter on how many were skipped?
+                        }
 
-                    if (!user_load($id_speler)) {
-                        continue; // TODO: counter on how many were skipped?
-                    }
-
-                    db_insert('gentle_saldo_transaction')
-                        ->fields(array(
-                            'uid' => $id_speler,
-                            'gentle_saldo_update_id' => $id_update,
-                            'date' => $datum,
-                            'amount' => $bedrag,
-                            'description' => $beschrijving,
-                            'remarks' => $opmerking,
-                        ))
-                        ->execute();
-				    $cntr++;			
-			    }
-		    }
-	    }
-	    else $empty_line_counter++;
-    }
+                        db_insert('gentle_saldo_transaction')
+                            ->fields(array(
+                                'uid' => $id_speler,
+                                'gentle_saldo_update_id' => $id_update,
+                                'date' => $datum,
+                                'amount' => $bedrag,
+                                'description' => $beschrijving,
+                                'remarks' => $opmerking,
+                            ))
+                            ->execute();
+				        $cntr++;			
+			        }
+		        }
+	        }
+	        else $empty_line_counter++;
+        }
     
-    fclose($fp_saldo);
-    drupal_set_message(t('Added !counter records from !total_rows (!empty_rows empty rows).', 
-        array('!counter' => $cntr, '!total_rows' => $total_line_counter, '!empty_rows' => $empty_line_counter)), 'status');
+        fclose($fp_saldo);
+        drupal_set_message(t('Added !counter records from !total_rows (!empty_rows empty rows).', 
+            array('!counter' => $cntr, '!total_rows' => $total_line_counter, '!empty_rows' => $empty_line_counter)), 'status');   
+    } catch (Exception $e) {
+        drupal_set_message($e->getMessage(), 'error');
+    }
 }
