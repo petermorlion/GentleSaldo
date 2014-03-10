@@ -371,7 +371,7 @@ function gentle_saldo_overview_form() {
         $form['gentle_saldo_debug_to'] = array(
             '#type' => 'textfield',
             '#title' => t('Send debug mails to'),
-            '#description' => t('Sends 4 debug mails to this address.'),
+            '#description' => t('Sends a maximum of 4 debug mails to this address.'),
         );
 
         $form['gentle_saldo_debug_smtp'] = array(
