@@ -31,7 +31,7 @@ function gentle_saldo_menu() {
         'title' => t('Saldo'),
         'page callback' => 'gentle_saldo_user_saldo',
         'page arguments' => array(1),
-        'access callback' => TRUE,
+        'access arguments' => array('access gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
         ); 
 
@@ -40,7 +40,7 @@ function gentle_saldo_menu() {
         'description' => 'Overview of the Gentle saldos.',
         'page callback' => 'gentle_saldo_overview',
         'page arguments' => array(1),
-        'access arguments' => array('access gentle_saldo'),
+        'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_NORMAL_ITEM,
     );
     
@@ -49,7 +49,7 @@ function gentle_saldo_menu() {
         'description' => 'Overview of the Gentle saldos.',
         'page callback' => 'gentle_saldo_overview',
         'page arguments' => array(1),
-        'access arguments' => array('access gentle_saldo'),
+        'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_DEFAULT_LOCAL_TASK,
     );
 
@@ -58,7 +58,7 @@ function gentle_saldo_menu() {
         'description' => 'Upload the saldos.',
         'page callback' => 'gentle_saldo_update',
         'page arguments' => array(1),
-        'access arguments' => array('access gentle_saldo'),
+        'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
     );
 
@@ -67,7 +67,7 @@ function gentle_saldo_menu() {
         'description' => 'Configuration for the Gentle saldo system.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_settings'),
-        'access arguments' => array('access gentle_saldo'),
+        'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
     );
 
@@ -79,7 +79,7 @@ function gentle_saldo_menu() {
 * @return array An array of valid permissions for the gentle_saldo module
 */
 function gentle_saldo_perm() {
-    return array('access gentle_saldo', 'debug gentle_saldo');
+    return array('manage gentle_saldo', 'debug gentle_saldo', 'access gentle_saldo');
 }
 
 /**
@@ -88,6 +88,10 @@ function gentle_saldo_perm() {
 function gentle_saldo_permission() {
     return array(
         'access gentle_saldo' => array(
+            'title' => t('View the user\'s saldo.'),
+            'description' => t('Allow a user to view his/her own saldo.')
+        ),
+        'manage gentle_saldo' => array(
             'title' => t('Manage Gentle saldos.'),
             'description' => t('Manage the saldos of Gentle members, send mails, change settings.')
         ),
