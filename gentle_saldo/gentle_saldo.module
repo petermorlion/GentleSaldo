@@ -88,7 +88,7 @@ function gentle_saldo_perm() {
 function gentle_saldo_permission() {
     return array(
         'access gentle_saldo' => array(
-            'title' => t('View the user\'s saldo.'),
+            'title' => t('View saldo.'),
             'description' => t('Allow a user to view his/her own saldo.')
         ),
         'manage gentle_saldo' => array(
