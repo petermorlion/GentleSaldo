@@ -211,15 +211,6 @@ function gentle_saldo_settings() {
         '#description' => t("The subject of the email members will receive with their saldo update."),
         '#required' => TRUE,
     );
-
-    $form['gentle_saldo_email_body_plain'] = array(
-        '#type' => 'textarea',
-        '#title' => t('Email body (non-HTML)'),
-        '#default_value' => variable_get('gentle_saldo_email_body_plain', ''),
-        '#maxlength' => 4096,
-        '#description' => t("The body of the email members will receive with their saldo update, if their mail client doesn't support HTML."),
-        '#required' => FALSE,
-    );
     
     $form['gentle_saldo_email_body_html'] = array(
         '#type' => 'textarea',
