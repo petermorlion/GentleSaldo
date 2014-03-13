@@ -28,7 +28,8 @@ function gentle_saldo_help($path, $arg) {
 */
 function gentle_saldo_menu() {
     $items['user/%user/saldo'] = array(
-        'title' => t('Saldo'),
+        'title' => 'Saldo',
+        'title callback' => 'gentle_saldo_user_saldo_title',
         'page callback' => 'gentle_saldo_user_saldo',
         'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
@@ -75,9 +76,54 @@ function gentle_saldo_menu() {
 }
 
 /**
-* Valid permissions for this module
-* @return array An array of valid permissions for the gentle_saldo module
-*/
+ * Adds the saldo to the menu item title, so users can instantly see their saldo
+ */
+function gentle_saldo_user_saldo_title($title) {
+    $row = "";	
+    $query = "select max(id) as id from gentle_saldo_update";
+    $rs = db_query($query);
+
+    # iterate over resultset, will be only once as we call the "max()" function
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $query = "select * from gentle_saldo_update where id = '".$row->id."'";
+    $rs = db_query($query);
+
+    # iterate over saldo_updates item, will be only once as the updateid is a unique primary key
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $update_id = $row->id;
+    $uid = $GLOBALS['user']->uid;
+
+    $rs = db_query("SELECT SUM(amount) as 'amount'
+                    FROM {gentle_saldo_transaction} 
+                    WHERE gentle_saldo_update_id = :update_id and uid = :uid 
+                    GROUP BY uid", array(
+            ':update_id' => $update_id,
+            ':uid' => $uid,
+        ));
+
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+    }
+
+    $saldo = $row->amount;
+
+    if ($saldo == NULL) {
+        return $title;
+    } else {
+        return $title . ' (' . $saldo . ')';
+    }
+}
+
+/**
+ * Valid permissions for this module
+ * @return array An array of valid permissions for the gentle_saldo module
+ */
 function gentle_saldo_perm() {
     return array('manage gentle_saldo', 'debug gentle_saldo', 'access gentle_saldo');
 }
@@ -214,10 +260,10 @@ function gentle_saldo_settings() {
     
     $form['gentle_saldo_email_body_html'] = array(
         '#type' => 'textarea',
-        '#title' => t('Email body (HTML)'),
+        '#title' => t('Email body'),
         '#default_value' => variable_get('gentle_saldo_email_body_html', ''),
         '#maxlength' => 4096,
-        '#description' => t("The body of the email members will receive with their saldo update, if their mail client supports HTML."),
+        '#description' => t("The body of the email members will receive with their saldo update. HTML is allowed, but not necessary."),
         '#required' => FALSE,
     );
 
@@ -226,7 +272,7 @@ function gentle_saldo_settings() {
         '#title' => t('Bankgegevens'),
         '#default_value' => variable_get('gentle_saldo_bank_details', ''),
         '#maxlength' => 600,
-        '#description' => t("The bank details so members know how and where to transfer the correct amount. HTML is allowed."),
+        '#description' => t("The bank details so members know how and where to transfer the correct amount. HTML is allowed, but not necessary."),
         '#required' => TRUE,
     );
 
@@ -480,7 +526,8 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
  */
 function gentle_saldo_mail($key, &$message, $params) {
     $message['subject'] = variable_get('gentle_saldo_email_subject');
-    $message['body'][] = variable_get('gentle_saldo_email_body_html');
+    $body = variable_get('gentle_saldo_email_body_html');
+    $message['body'][] = $body = nl2br($body);
     $message['body'][] = gentle_saldo_user_saldo_html($params['uid']);
 }
 
