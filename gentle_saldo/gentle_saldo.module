@@ -269,7 +269,7 @@ function gentle_saldo_settings() {
 
     $form['gentle_saldo_bank_details'] = array(
         '#type' => 'textarea',
-        '#title' => t('Bankgegevens'),
+        '#title' => t('Bank details'),
         '#default_value' => variable_get('gentle_saldo_bank_details', ''),
         '#maxlength' => 600,
         '#description' => t("The bank details so members know how and where to transfer the correct amount. HTML is allowed, but not necessary."),
