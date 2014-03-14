@@ -271,7 +271,7 @@ function gentle_saldo_settings() {
         '#type' => 'textarea',
         '#title' => t('Bank details'),
         '#default_value' => variable_get('gentle_saldo_bank_details', ''),
-        '#maxlength' => 600,
+        '#maxlength' => 2048,
         '#description' => t("The bank details so members know how and where to transfer the correct amount. HTML is allowed, but not necessary."),
         '#required' => TRUE,
     );
