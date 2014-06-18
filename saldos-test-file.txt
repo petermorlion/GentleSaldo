@@ -8,6 +8,11 @@
 	laatste update:	14/01/2014					
 							
 	naam	datum	cumulatief	bedrag	thema	verwijzing/opmerking	mailadres
-88	Peter Morlion	1/01/2013	0	120	Test nieuwe module	kristof.morlion@me.com
+1	Peter Morlion	1/01/2013	0	120	Test nieuwe module	kristof.morlion@me.com
  	 	8/04/2013	120	-12	Test nieuwe module 2	
  	 	totaal	108		
+		
+2	Peter Morlion	1/01/2013	0	-80	Test nieuwe module	kristof.morlion@me.com
+ 	 	8/04/2013	-80	60	Test nieuwe module 2	
+		9/04/2013	-20	60	Test nieuwe module 2	
+ 	 	totaal	40		
