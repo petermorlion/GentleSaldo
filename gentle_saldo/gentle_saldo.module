@@ -32,7 +32,8 @@ function gentle_saldo_menu() {
         'title callback' => 'gentle_saldo_user_saldo_title',
         'page callback' => 'gentle_saldo_user_saldo',
         'page arguments' => array(1),
-        'access arguments' => array('access gentle_saldo'),
+        'access callback' => 'gentle_saldo_user_saldo_access',
+        'access arguments' => array('access gentle_saldo', 1),
         'type' => MENU_LOCAL_TASK,
         ); 
 
@@ -70,12 +71,6 @@ function gentle_saldo_menu() {
         'page arguments' => array('gentle_saldo_settings'),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
-    );
-
-    $items['admin/gentle_saldo/user_saldo/%'] = array(
-        'page callback' => 'gentle_saldo_user_saldo',
-        'page arguments' => array(3),
-        'access arguments' => array('manage gentle_saldo')
     );
 
     return $items;
@@ -155,15 +150,17 @@ function gentle_saldo_permission() {
 }
 
 /**
+* Determines if the user has access to the user saldo.
+*/
+function gentle_saldo_user_saldo_access($permission, $uid) {
+    return $uid == $GLOBALS['user']->uid || user_access($permission);
+}
+
+/**
 * Show the saldo of the current user (needs improvements like using the Drupal DB API,...)
 */
 function gentle_saldo_user_saldo($userId) {
-    if ($userId == NULL) {
-        return gentle_saldo_user_saldo_html($GLOBALS['user']->uid);
-    }
-    else {
-        return gentle_saldo_user_saldo_html($userId);
-    }
+    return gentle_saldo_user_saldo_html($userId);
 }
 
 /**
@@ -194,7 +191,7 @@ function gentle_saldo_user_saldo_html($uid) {
     } else {
         $account = user_load($uid);
         $userName = $account->name;
-        $html = "uid: " . $uid;
+        $html = "";
         $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . t(" voor ") . $userName . "</h2>"; 
         $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
@@ -409,7 +406,7 @@ function gentle_saldo_overview_form() {
         }
 
 	    $row = $rs_item;
-        $saldoLink = '<a href="/admin/gentle_saldo/user_saldo/' . $row->uid . '">' . $row->name . "</a>";
+        $saldoLink = '<a href="/user/' . $row->uid . '/saldo">' . $row->name . "</a>";
         $html .= '<tr class="' . $rowclass . '"><td>' . $saldoLink . '</td><td>' . round($row->total, 2) . '</td></tr>';
         $index++;
     }
