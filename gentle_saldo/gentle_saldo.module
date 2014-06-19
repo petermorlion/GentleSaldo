@@ -30,6 +30,7 @@ function gentle_saldo_menu() {
     $items['user/%/saldo'] = array(
         'title' => 'Saldo',
         'title callback' => 'gentle_saldo_user_saldo_title',
+        'title arguments' => array(1),
         'page callback' => 'gentle_saldo_user_saldo',
         'page arguments' => array(1),
         'access callback' => 'gentle_saldo_user_saldo_access',
@@ -79,7 +80,7 @@ function gentle_saldo_menu() {
 /**
  * Adds the saldo to the menu item title, so users can instantly see their saldo
  */
-function gentle_saldo_user_saldo_title($title) {
+function gentle_saldo_user_saldo_title($uid) {
     $row = "";	
     $query = "select max(id) as id from gentle_saldo_update";
     $rs = db_query($query);
@@ -98,7 +99,6 @@ function gentle_saldo_user_saldo_title($title) {
     }
 
     $update_id = $row->id;
-    $uid = $GLOBALS['user']->uid;
 
     $rs = db_query("SELECT SUM(amount) as 'amount'
                     FROM {gentle_saldo_transaction} 
@@ -115,9 +115,9 @@ function gentle_saldo_user_saldo_title($title) {
     $saldo = $row->amount;
 
     if ($saldo == NULL) {
-        return $title;
+        return t('Saldo');
     } else {
-        return $title . ' (' . $saldo . ')';
+        return t('Saldo (' . $saldo . ')');
     }
 }
 
