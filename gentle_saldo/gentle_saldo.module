@@ -27,11 +27,11 @@ function gentle_saldo_help($path, $arg) {
 * Implementation of hook_menu
 */
 function gentle_saldo_menu() {
-    $items['user/%user/saldo'] = array(
+    $items['user/%/saldo'] = array(
         'title' => 'Saldo',
         'title callback' => 'gentle_saldo_user_saldo_title',
         'page callback' => 'gentle_saldo_user_saldo',
-        'page arguments' => array(NULL),
+        'page arguments' => array(1),
         'access arguments' => array('access gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
         ); 
@@ -72,9 +72,9 @@ function gentle_saldo_menu() {
         'type' => MENU_LOCAL_TASK,
     );
 
-    $items['admin/gentle_saldo/user_saldo'] = array(
+    $items['admin/gentle_saldo/user_saldo/%'] = array(
         'page callback' => 'gentle_saldo_user_saldo',
-        'page arguments' => array(1, 2),
+        'page arguments' => array(3),
         'access arguments' => array('manage gentle_saldo')
     );
 
@@ -157,7 +157,7 @@ function gentle_saldo_permission() {
 /**
 * Show the saldo of the current user (needs improvements like using the Drupal DB API,...)
 */
-function gentle_saldo_user_saldo($arg1, $userId) {
+function gentle_saldo_user_saldo($userId) {
     if ($userId == NULL) {
         return gentle_saldo_user_saldo_html($GLOBALS['user']->uid);
     }
@@ -194,7 +194,7 @@ function gentle_saldo_user_saldo_html($uid) {
     } else {
         $account = user_load($uid);
         $userName = $account->name;
-        $html = "";
+        $html = "uid: " . $uid;
         $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . t(" voor ") . $userName . "</h2>"; 
         $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
