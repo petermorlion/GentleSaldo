@@ -389,7 +389,8 @@ function gentle_saldo_overview_form() {
                     FROM {gentle_saldo_transaction} g
                         INNER JOIN {users} u ON u.uid = g.uid
                     WHERE g.gentle_saldo_update_id = :update_id 
-                    GROUP BY g.uid, u.name", array(
+                    GROUP BY g.uid, u.name
+                    ORDER BY u.name", array(
             ':update_id' => $update_id,
         ));
 
