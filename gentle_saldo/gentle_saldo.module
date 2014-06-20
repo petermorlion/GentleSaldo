@@ -112,7 +112,7 @@ function gentle_saldo_user_saldo_title($uid) {
 	    $row = $rs_item;
     }
 
-    $saldo = $row->amount;
+    $saldo = round($row->amount, 2);
 
     if ($saldo == NULL) {
         return t('Saldo');
