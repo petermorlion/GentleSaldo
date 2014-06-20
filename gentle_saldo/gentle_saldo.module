@@ -196,11 +196,11 @@ function gentle_saldo_user_saldo_html($uid) {
         $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
         $html .= "<table><thead><tr>";
-	    $html .= "<th align='center'>" . t("Datum") . "</th>";
-	    $html .= "<th align='right'>" . t("Cumul") . "</th>";
-	    $html .= "<th align='right'>" . t("Bedrag") . "</th>";
-	    $html .= "<th align='left'>" . t("Beschrijving") . "</th>";
-	    $html .= "<th align='left'>" . t("Opmerkingen") . "</th>";
+	    $html .= "<th>" . t("Datum") . "</th>";
+	    $html .= "<th>" . t("Cumul") . "</th>";
+	    $html .= "<th>" . t("Bedrag") . "</th>";
+	    $html .= "<th>" . t("Beschrijving") . "</th>";
+	    $html .= "<th>" . t("Opmerkingen") . "</th>";
 	    $html .= "</tr></thead><tbody>";
 
         $rs = db_query("SELECT * FROM {gentle_saldo_transaction} WHERE gentle_saldo_update_id = :update_id and uid = :uid order by date, id", array(
@@ -220,11 +220,11 @@ function gentle_saldo_user_saldo_html($uid) {
             }
 
 		    $html .= "<tr class='" . $rowclass ."'>";
-		    $html .= "<td align='center'>" .date("d-m-Y", $row->date) . "</td>";
-		    $html .= "<td align='right'>" . $cumul . "</td>";			
-		    $html .= "<td align='right'>" . $row->amount . "</td>";
-		    $html .= "<td align='left'>" . $row->description . "</td>";
-		    $html .= "<td align='left'>" . $row->remarks . "</td>";
+		    $html .= "<td>" .date("d-m-Y", $row->date) . "</td>";
+		    $html .= "<td>" . $cumul . "</td>";			
+		    $html .= "<td>" . $row->amount . "</td>";
+		    $html .= "<td>" . $row->description . "</td>";
+		    $html .= "<td>" . $row->remarks . "</td>";
 		    $html .= "</tr>";
 
 		    $cumul += $row->amount;
