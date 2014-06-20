@@ -406,7 +406,9 @@ function gentle_saldo_overview_form() {
         }
 
 	    $row = $rs_item;
-	$saldoUrl = $base_url . '/user/'  . $row->uid . '/saldo';
+	    
+        global $base_url;
+        $saldoUrl = $base_url . '/user/'  . $row->uid . '/saldo';
         $saldoLink = '<a href="' . $saldoUrl . '">' . $row->name . "</a>";
         $html .= '<tr class="' . $rowclass . '"><td>' . $saldoLink . '</td><td>' . round($row->total, 2) . '</td></tr>';
         $index++;
