@@ -65,8 +65,17 @@ function gentle_saldo_menu() {
         'type' => MENU_LOCAL_TASK,
     );
 
+    $items['admin/gentle_saldo/relationships'] = array(
+        'title' => 'Ouder-kind',
+        'description' => 'Overview of the parent-child relationships.',
+        'page callback' => 'gentle_saldo_parent_child_overview',
+        'page arguments' => array(1),
+        'access arguments' => array('manage gentle_saldo'),
+        'type' => MENU_LOCAL_TASK,
+    );
+
     $items['admin/gentle_saldo/settings'] = array(
-        'title' => 'Settings',
+        'title' => 'Instellingen',
         'description' => 'Configuration for the Gentle saldo system.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_settings'),
@@ -112,7 +121,7 @@ function gentle_saldo_user_saldo_title($uid) {
 	    $row = $rs_item;
     }
 
-    $saldo = round($row->amount, 2);
+    $saldo = $row->amount;
 
     if ($saldo == NULL) {
         return t('Saldo');
@@ -389,8 +398,7 @@ function gentle_saldo_overview_form() {
                     FROM {gentle_saldo_transaction} g
                         INNER JOIN {users} u ON u.uid = g.uid
                     WHERE g.gentle_saldo_update_id = :update_id 
-                    GROUP BY g.uid, u.name
-                    ORDER BY u.name", array(
+                    GROUP BY g.uid, u.name", array(
             ':update_id' => $update_id,
         ));
 
@@ -407,10 +415,7 @@ function gentle_saldo_overview_form() {
         }
 
 	    $row = $rs_item;
-	    
-        global $base_url;
-        $saldoUrl = $base_url . '/user/'  . $row->uid . '/saldo';
-        $saldoLink = '<a href="' . $saldoUrl . '">' . $row->name . "</a>";
+        $saldoLink = '<a href="/user/' . $row->uid . '/saldo">' . $row->name . "</a>";
         $html .= '<tr class="' . $rowclass . '"><td>' . $saldoLink . '</td><td>' . round($row->total, 2) . '</td></tr>';
         $index++;
     }
@@ -535,6 +540,33 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
                             array('!successNumber' => $successNumber,
                                   '!errorNumber' => $errorNumber)), 'status');
     }
+}
+
+/**
+ * The overview page for the saldos.
+ */
+function gentle_saldo_parent_child_overview() {
+    $rs = db_query("SELECT p.uid, p.name as 'Parent', c.uid, c.name as 'Child'
+                    FROM {gentle_saldo_parent_child} r
+                        INNER JOIN {users} p ON p.uid = r.parent_uid
+                        INNER JOIN {users} c ON c.uid = r.child_uid
+                    ORDER BY p.name", array()
+                  );
+
+    $header = array(t('Parent'), t('Child'));
+    $rows = array();
+
+    foreach ($rs as $rs_item) {
+	    $row = $rs_item;
+        $rows[] = array($row->Parent, $row->Child);
+    }
+
+    $html = theme('table', array(
+        'header' => $header,
+        'rows' => $rows
+    ));
+
+    return $html;
 }
 
 /**
