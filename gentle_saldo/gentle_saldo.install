@@ -93,5 +93,51 @@ function gentle_saldo_schema() {
     ),
   );
 
+  $schema['gentle_saldo_parent_child'] = gentle_saldo_parent_child_table();
+
   return $schema;
+}
+
+/**
+ * Add table for parent-child relationships.
+ */
+function gentle_saldo_update_7200() {
+    db_create_table('gentle_saldo_parent_child', gentle_saldo_parent_child_table());
+}
+
+function gentle_saldo_parent_child_table() {
+    return array(
+        'description' => 'Defines parent-child relationships between users, where parents can see the saldos of their children.',
+        'fields' => array(
+          'id' => array(
+            'type' => 'serial',
+            'size' => 'big',
+            'not null' => TRUE,
+            'description' => 'The id of this row.',
+          ),
+          'parent_uid' => array(
+            'type' => 'int',
+            'not null' => TRUE,
+            'default' => 0,
+            'description' => 'The parent\'s {user}.id of this relationship.',
+          ),
+          'child_uid' => array(
+            'type' => 'int',
+            'not null' => TRUE,
+            'default' => 0,
+            'description' => 'The child\'s {user}.id of this relationship.',
+          )
+        ),
+        'primary key' => array('id'),
+        'foreign keys' => array(
+          'gentle_saldo_transaction_parent_users' => array(
+            'table' => 'users',
+            'columns' => array('uid' => 'parent_uid'),
+          ),
+          'gentle_saldo_transaction_child_users' => array(
+            'table' => 'users',
+            'columns' => array('uid' => 'child_uid'),
+          ),
+        ),
+    );
 }
