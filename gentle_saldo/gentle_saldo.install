@@ -25,9 +25,9 @@ function gentle_saldo_schema() {
       'remarks' => array(
         'type' => 'varchar',
         'length' => 512,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
-        'description' => 'The remarks for this round of saldo updates.',
+        'description' => 'The remarks for this round of saldo updates.'
       ),
     ),
     'primary key' => array('id'),
@@ -67,17 +67,17 @@ function gentle_saldo_schema() {
       ),
       'description' => array(
         'type' => 'varchar',
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
         'length' => 128,
-        'description' => 'A short description of the transaction.',
+        'description' => 'A short description of the transaction.'
       ),
       'remarks' => array(
         'type' => 'varchar',
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
         'length' => 128,
-        'description' => 'Any remarks for the transaction.',
+        'description' => 'Any remarks for the transaction.'
       ),
     ),
     'primary key' => array('id'),
@@ -99,12 +99,29 @@ function gentle_saldo_schema() {
 }
 
 /**
+ * Remarks and description fields should be nullable.
+ */
+function gentle_saldo_update_7100() {
+    gentle_saldo_nullable_fields();
+}
+
+/**
  * Add table for parent-child relationships.
  */
 function gentle_saldo_update_7200() {
     db_create_table('gentle_saldo_parent_child', gentle_saldo_parent_child_table());
 }
 
+/**
+ * Remarks and description fields should be nullable.
+ */
+function gentle_saldo_update_7201() {
+    gentle_saldo_nullable_fields();
+}
+
+/**
+ * Get the parent-child relationship table.
+ */
 function gentle_saldo_parent_child_table() {
     return array(
         'description' => 'Defines parent-child relationships between users, where parents can see the saldos of their children.',
@@ -139,5 +156,40 @@ function gentle_saldo_parent_child_table() {
             'columns' => array('uid' => 'child_uid'),
           ),
         ),
+    );
+}
+
+/**
+ * Remarks and description fields should be nullable.
+ */
+function gentle_saldo_nullable_fields() {
+    db_change_field('gentle_saldo_update', 'remarks', 'remarks',
+        array(
+            'type' => 'varchar',
+            'length' => 512,
+            'not null' => FALSE,
+            'default' => '',
+            'description' => 'The remarks for this round of saldo updates.'
+          )
+    );
+
+    db_change_field('gentle_saldo_transaction', 'description', 'description',
+        array(
+            'type' => 'varchar',
+            'not null' => FALSE,
+            'default' => '',
+            'length' => 128,
+            'description' => 'A short description of the transaction.'
+          )
+    );
+
+    db_change_field('gentle_saldo_transaction', 'remarks', 'remarks',
+        array(
+            'type' => 'varchar',
+            'not null' => FALSE,
+            'default' => '',
+            'length' => 128,
+            'description' => 'Any remarks for the transaction.'
+          )
     );
 }
