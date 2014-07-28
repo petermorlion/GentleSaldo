@@ -602,7 +602,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
 			        }
 			        else {
 				        if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
-					        $header.= htmlspecialchars(trim($line, " \t"),ENT_QUOTES, "cp1252");
+					        $header .= mb_check_encoding(trim($line, " \t") ? trim($line, " \t") : utf8_encode(trim($line, " \t")));
 				        }
 			        }
 		        }
@@ -619,8 +619,8 @@ function gentle_saldo_update_saldos($saldoFileUri) {
 
 				        $datum = gentle_saldo_datestring_to_timestamp($tokens[2]);
 				        $bedrag = htmlspecialchars(trim(str_replace(",",".",$tokens[4])), ENT_QUOTES, "cp1252");
-				        $beschrijving = htmlspecialchars(trim($tokens[5]), ENT_QUOTES, "cp1252");
-				        $opmerking = htmlspecialchars(trim($tokens[6]), ENT_QUOTES, "cp1252");
+				        $beschrijving = mb_check_encoding(trim($tokens[5]), 'UTF-8') ? trim($tokens[5]) : utf8_encode(trim($tokens[5]));
+                        $opmerking = mb_check_encoding(trim($tokens[6]), 'UTF-8') ? trim($tokens[6]) : utf8_encode(trim($tokens[6]));
 
                         if ($id_speler == '') {
                             continue; // TODO: counter on how many were empty?

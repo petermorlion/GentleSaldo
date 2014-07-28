@@ -25,9 +25,9 @@ function gentle_saldo_schema() {
       'remarks' => array(
         'type' => 'varchar',
         'length' => 512,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
-        'description' => 'The remarks for this round of saldo updates.',
+        'description' => 'The remarks for this round of saldo updates.'
       ),
     ),
     'primary key' => array('id'),
@@ -67,17 +67,17 @@ function gentle_saldo_schema() {
       ),
       'description' => array(
         'type' => 'varchar',
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
         'length' => 128,
-        'description' => 'A short description of the transaction.',
+        'description' => 'A short description of the transaction.'
       ),
       'remarks' => array(
         'type' => 'varchar',
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
         'length' => 128,
-        'description' => 'Any remarks for the transaction.',
+        'description' => 'Any remarks for the transaction.'
       ),
     ),
     'primary key' => array('id'),
@@ -94,4 +94,46 @@ function gentle_saldo_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Remarks and description fields should be nullable.
+ */
+function gentle_saldo_update_7100() {
+    gentle_saldo_nullable_fields();
+}
+
+/**
+ * Remarks and description fields should be nullable.
+ */
+function gentle_saldo_nullable_fields() {
+    db_change_field('gentle_saldo_update', 'remarks', 'remarks',
+        array(
+            'type' => 'varchar',
+            'length' => 512,
+            'not null' => FALSE,
+            'default' => '',
+            'description' => 'The remarks for this round of saldo updates.'
+          )
+    );
+
+    db_change_field('gentle_saldo_transaction', 'description', 'description',
+        array(
+            'type' => 'varchar',
+            'not null' => FALSE,
+            'default' => '',
+            'length' => 128,
+            'description' => 'A short description of the transaction.'
+          )
+    );
+
+    db_change_field('gentle_saldo_transaction', 'remarks', 'remarks',
+        array(
+            'type' => 'varchar',
+            'not null' => FALSE,
+            'default' => '',
+            'length' => 128,
+            'description' => 'Any remarks for the transaction.'
+          )
+    );
 }
