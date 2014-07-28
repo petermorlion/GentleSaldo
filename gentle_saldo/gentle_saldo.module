@@ -602,7 +602,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
 			        }
 			        else {
 				        if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
-					        $header .= mb_check_encoding(trim($line, " \t") ? trim($line, " \t") : utf8_encode(trim($line, " \t")));
+					        $header .= mb_check_encoding(trim($line, " \t")) ? trim($line, " \t") : utf8_encode(trim($line, " \t"));
 				        }
 			        }
 		        }
