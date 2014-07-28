@@ -206,13 +206,23 @@ function gentle_saldo_user_saldo_html($uid) {
 
         $html .= "<table><thead><tr>";
 	    $html .= "<th>" . t("Datum") . "</th>";
+        $html .= "<th>" . t("Gebruiker") . "</th>";
 	    $html .= "<th>" . t("Cumul") . "</th>";
 	    $html .= "<th>" . t("Bedrag") . "</th>";
 	    $html .= "<th>" . t("Beschrijving") . "</th>";
 	    $html .= "<th>" . t("Opmerkingen") . "</th>";
 	    $html .= "</tr></thead><tbody>";
 
-        $rs = db_query("SELECT * FROM {gentle_saldo_transaction} WHERE gentle_saldo_update_id = :update_id and uid = :uid order by date, id", array(
+        $rs = db_query("SELECT t.amount, t.description, t.remarks, t.date, 
+                            t.uid as 't_uid', cu.name as 'childname', pu.uid as 'parent_uid', cu.uid as 'child_uid', pu.name as 'parentname'
+                        FROM {gentle_saldo_transaction} t
+                        LEFT OUTER JOIN {gentle_saldo_parent_child} r
+                            on r.parent_uid = :uid
+                        LEFT OUTER JOIN {users} cu ON cu.uid = r.child_uid
+                        LEFT OUTER JOIN {users} pu ON pu.uid = :uid
+                        WHERE t.gentle_saldo_update_id = :update_id 
+                            and (t.uid = :uid or t.uid = r.child_uid)
+                        order by t.date, t.id", array(
             ':update_id' => $update_id,
             ':uid' => $uid,
         ));
@@ -228,8 +238,14 @@ function gentle_saldo_user_saldo_html($uid) {
                 $rowclass = 'odd';
             }
 
+            $name = $row->parentname;
+            if ($row->t_uid == $row->child_uid) {
+                $name = $row->childname;
+            }
+
 		    $html .= "<tr class='" . $rowclass ."'>";
 		    $html .= "<td>" .date("d-m-Y", $row->date) . "</td>";
+            $html .= "<td>" . $name . "</td>";
 		    $html .= "<td>" . $cumul . "</td>";			
 		    $html .= "<td>" . $row->amount . "</td>";
 		    $html .= "<td>" . $row->description . "</td>";
