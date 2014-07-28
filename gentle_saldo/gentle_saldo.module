@@ -546,7 +546,7 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
  * The overview page for the saldos.
  */
 function gentle_saldo_parent_child_overview() {
-    $rs = db_query("SELECT p.uid, p.name as 'Parent', c.uid, c.name as 'Child'
+    $rs = db_query("SELECT p.uid as 'parentId', p.name as 'Parent', c.uid as 'childId', c.name as 'Child'
                     FROM {gentle_saldo_parent_child} r
                         INNER JOIN {users} p ON p.uid = r.parent_uid
                         INNER JOIN {users} c ON c.uid = r.child_uid
@@ -558,7 +558,9 @@ function gentle_saldo_parent_child_overview() {
 
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
-        $rows[] = array($row->Parent, $row->Child);
+        $parentLink = '<a href="/user/' . $row->parentId . '/saldo">' . $row->Parent . "</a>";
+        $childLink = '<a href="/user/' . $row->childId . '/saldo">' . $row->Child . "</a>";
+        $rows[] = array($parentLink, $childLink);
     }
 
     $html = theme('table', array(
@@ -634,7 +636,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
 			        }
 			        else {
 				        if (!preg_match("/^spelers saldos$/", trim($line_stripped))){
-					        $header .= mb_check_encoding(trim($line, " \t")) ? trim($line, " \t") : utf8_encode(trim($line, " \t"));
+                            $header .= mb_check_encoding(trim($line, " \t")) ? trim($line, " \t") : utf8_encode(trim($line, " \t"));
 				        }
 			        }
 		        }
@@ -672,6 +674,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
                                 'remarks' => $opmerking,
                             ))
                             ->execute();
+
 				        $cntr++;			
 			        }
 		        }
