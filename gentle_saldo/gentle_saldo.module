@@ -54,6 +54,7 @@ function gentle_saldo_menu() {
         'page arguments' => array(1),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => 0
     );
 
     $items['admin/gentle_saldo/update'] = array(
@@ -63,6 +64,7 @@ function gentle_saldo_menu() {
         'page arguments' => array(1),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
+        'weight' => 1
     );
 
     $items['admin/gentle_saldo/relationships'] = array(
@@ -72,6 +74,7 @@ function gentle_saldo_menu() {
         'page arguments' => array(1),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
+        'weight' => 2
     );
 
     $items['admin/gentle_saldo/settings'] = array(
@@ -81,6 +84,7 @@ function gentle_saldo_menu() {
         'page arguments' => array('gentle_saldo_settings'),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
+        'weight' => 3
     );
 
     return $items;
