@@ -817,4 +817,6 @@ function gentle_saldo_parent_child_add_form_submit($form, &$form_state) {
                                 'child_uid' => $child_uid,
                             ))
                             ->execute();
+
+    drupal_set_message(t('The relationship was added succesfully.'), 'status');
 }
