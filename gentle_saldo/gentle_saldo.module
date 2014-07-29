@@ -204,6 +204,24 @@ function gentle_saldo_user_saldo_html($uid) {
         $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . t(" voor ") . $userName . "</h2>"; 
         $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
 
+        $rs = db_query("SELECT cu.name as 'childname'
+                        FROM {gentle_saldo_parent_child} r
+                        INNER JOIN {users} cu ON cu.uid = r.child_uid
+                        WHERE r.parent_uid = :uid
+                        order by cu.name", array(
+            ':uid' => $uid,
+        ));
+
+        $children = array();
+        foreach ($rs as $row) {
+            $children[] = $row->childname;
+        }
+
+        if (count($children) > 0) {
+            $html .= "<p>" . t("Je ziet ook de gegevens van ");
+            $html .= implode(", ", $children) . ".";
+        }
+        
         $html .= "<table><thead><tr>";
 	    $html .= "<th>" . t("Datum") . "</th>";
         $html .= "<th>" . t("Gebruiker") . "</th>";
