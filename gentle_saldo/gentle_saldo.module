@@ -77,6 +77,14 @@ function gentle_saldo_menu() {
         'weight' => 2
     );
 
+    $items['admin/gentle_saldo/relationships/add'] = array(
+        'title' => 'Ouder-kind relatie toevoegen',
+        'description' => 'Add a parent-child relationship',
+        'page callback' => 'gentle_saldo_parent_child_add',
+        'page arguments' => array(1),
+        'access arguments' => array('manage gentle_saldo')
+    );
+
     $items['admin/gentle_saldo/settings'] = array(
         'title' => 'Instellingen',
         'description' => 'Configuration for the Gentle saldo system.',
@@ -601,7 +609,9 @@ function gentle_saldo_parent_child_overview() {
         $rows[] = array($parentLink, $childLink);
     }
 
-    $html = theme('table', array(
+    $html = "<p><a href='/admin/gentle_saldo/relationships/add'>" . t("Toevoegen") . "</a></p>";
+
+    $html .= theme('table', array(
         'header' => $header,
         'rows' => $rows
     ));
@@ -726,4 +736,85 @@ function gentle_saldo_update_saldos($saldoFileUri) {
     } catch (Exception $e) {
         drupal_set_message($e->getMessage(), 'error');
     }
+}
+
+/**
+ * Page for adding a new parent-child relationship
+ */
+function gentle_saldo_parent_child_add() {
+    //$rs = db_query("SELECT uid, name
+    //                FROM {users}
+    //                ORDER BY name", array()
+    //              );
+
+    //$options = array();
+    //foreach($rs as $row) {
+    //    $options[$row->uid] = $row->name;
+    //}
+
+    $form = array();
+    //$form['gentle_saldo_parent'] = array(
+    //    '#type' => 'select',
+    //    '#title' => t('Ouder'),
+    //    '#options' => $options,
+    //    '#description' => t("De ouder"),
+    //    '#required' => TRUE,
+    //);
+    
+    return drupal_get_form('gentle_saldo_parent_child_add_form');
+}
+
+/**
+ * Form for adding a new parent-child relationship
+ */
+function gentle_saldo_parent_child_add_form() {
+    $rs = db_query("SELECT uid, name
+                    FROM {users}
+                    ORDER BY name", array()
+                  );
+
+    $options = array();
+    foreach($rs as $row) {
+        $options[$row->uid] = $row->name;
+    }
+
+    $form = array();
+    $form['gentle_saldo_parent'] = array(
+        '#type' => 'select',
+        '#title' => t('Ouder'),
+        '#options' => $options,
+        '#description' => t("De ouder"),
+        '#required' => TRUE,
+    );
+
+    $form['gentle_saldo_child'] = array(
+        '#type' => 'select',
+        '#title' => t('Kind'),
+        '#options' => $options,
+        '#description' => t("Het kind waarvoor de ouder het saldo kan zien."),
+        '#required' => TRUE,
+    );
+
+    $form['submit_button'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+    );
+
+    return $form;
+}
+
+function gentle_saldo_parent_child_add_form_validate($form, &$form_state) {
+    // TODO: check if parent != child
+}
+
+function gentle_saldo_parent_child_add_form_submit($form, &$form_state) {
+    $parent_uid = $form_state['values']['gentle_saldo_parent'];
+    $child_uid = $form_state['values']['gentle_saldo_child'];
+
+    $id_update = db_insert('gentle_saldo_parent_child')
+                            ->fields(array(
+                                'parent_uid' => $parent_uid,
+                                'child_uid' => $child_uid,
+                            ))
+                            ->execute();
 }
