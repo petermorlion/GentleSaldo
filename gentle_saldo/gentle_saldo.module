@@ -779,6 +779,9 @@ function gentle_saldo_parent_child_add_form() {
     }
 
     $form = array();
+    $form['#prefix'] = t("Add a parent-child relationship here, by selecting the users that represent the parent and the child.
+                          The parent will be able to see the child's saldo.");
+
     $form['gentle_saldo_parent'] = array(
         '#type' => 'select',
         '#title' => t('Ouder'),
