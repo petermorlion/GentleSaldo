@@ -70,8 +70,8 @@ function gentle_saldo_menu() {
     $items['admin/gentle_saldo/relationships'] = array(
         'title' => 'Ouder-kind',
         'description' => 'Overview of the parent-child relationships.',
-        'page callback' => 'gentle_saldo_parent_child_overview',
-        'page arguments' => array(1),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('gentle_saldo_parent_child_overview'),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
         'weight' => 2
@@ -592,31 +592,49 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
  * The overview page for the saldos.
  */
 function gentle_saldo_parent_child_overview() {
-    $rs = db_query("SELECT p.uid as 'parentId', p.name as 'Parent', c.uid as 'childId', c.name as 'Child'
+    $rs = db_query("SELECT r.id as 'rid', p.uid as 'parentId', p.name as 'Parent', c.uid as 'childId', c.name as 'Child'
                     FROM {gentle_saldo_parent_child} r
                         INNER JOIN {users} p ON p.uid = r.parent_uid
                         INNER JOIN {users} c ON c.uid = r.child_uid
                     ORDER BY p.name", array()
                   );
 
-    $header = array(t('Parent'), t('Child'));
     $rows = array();
 
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
         $parentLink = '<a href="/user/' . $row->parentId . '/saldo">' . $row->Parent . "</a>";
         $childLink = '<a href="/user/' . $row->childId . '/saldo">' . $row->Child . "</a>";
-        $rows[] = array($parentLink, $childLink);
+        
+        $rows[$row->rid] = array(
+          'parent' => $parentLink,
+          'child' => $childLink,
+        );
     }
 
-    $html = "<p><a href='/admin/gentle_saldo/relationships/add'>" . t("Toevoegen") . "</a></p>";
+    $header = array(
+        'parent' => t('Parent'), 
+        'child' => t('Child')
+    );
+    
+    $form = array();
 
-    $html .= theme('table', array(
-        'header' => $header,
-        'rows' => $rows
-    ));
+    $form['#prefix'] = "<p><a href='/admin/gentle_saldo/relationships/add'>" . t("Toevoegen") . "</a></p>";
 
-    return $html;
+    $form['gentle_saldo_relationship_overview'] = array(
+        '#type' => 'tableselect',
+        '#header' => $header,
+        '#options' => $rows,
+        '#empty' => t('There are no relationships defined yet.'),
+        '#multiple' => TRUE,
+    );
+
+    $form['submit_button'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete selected'),
+    );
+
+    return $form;
 }
 
 /**
@@ -742,25 +760,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
  * Page for adding a new parent-child relationship
  */
 function gentle_saldo_parent_child_add() {
-    //$rs = db_query("SELECT uid, name
-    //                FROM {users}
-    //                ORDER BY name", array()
-    //              );
-
-    //$options = array();
-    //foreach($rs as $row) {
-    //    $options[$row->uid] = $row->name;
-    //}
-
-    $form = array();
-    //$form['gentle_saldo_parent'] = array(
-    //    '#type' => 'select',
-    //    '#title' => t('Ouder'),
-    //    '#options' => $options,
-    //    '#description' => t("De ouder"),
-    //    '#required' => TRUE,
-    //);
-    
+    $form = array();    
     return drupal_get_form('gentle_saldo_parent_child_add_form');
 }
 
