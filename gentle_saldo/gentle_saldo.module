@@ -71,7 +71,7 @@ function gentle_saldo_menu() {
         'title' => 'Ouder-kind',
         'description' => 'Overview of the parent-child relationships.',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('gentle_saldo_parent_child_overview'),
+        'page arguments' => array('gentle_saldo_parent_child_overview_form'),
         'access arguments' => array('manage gentle_saldo'),
         'type' => MENU_LOCAL_TASK,
         'weight' => 2
@@ -589,9 +589,9 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
 }
 
 /**
- * The overview page for the saldos.
+ * The overview page for the relationships.
  */
-function gentle_saldo_parent_child_overview() {
+function gentle_saldo_parent_child_overview_form() {
     $rs = db_query("SELECT r.id as 'rid', p.uid as 'parentId', p.name as 'Parent', c.uid as 'childId', c.name as 'Child'
                     FROM {gentle_saldo_parent_child} r
                         INNER JOIN {users} p ON p.uid = r.parent_uid
@@ -635,6 +635,19 @@ function gentle_saldo_parent_child_overview() {
     );
 
     return $form;
+}
+
+/*
+ * Code for submitting the relationship overview form (deleting relationships)
+ */
+function gentle_saldo_parent_child_overview_form_submit($form, &$form_state) {
+    foreach($form_state['values']['gentle_saldo_relationship_overview'] as $rid) {
+        db_delete('gentle_saldo_parent_child')
+            ->condition('id', $rid)
+            ->execute();
+    }
+
+    drupal_set_message(t('The selected relationships have been deleted.'));   
 }
 
 /**
