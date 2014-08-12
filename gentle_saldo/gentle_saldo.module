@@ -418,6 +418,8 @@ function gentle_saldo_overview() {
  * Returns the form with the overview of the saldos and for sending the mail.
  */
 function gentle_saldo_overview_form() {
+    global $base_url;
+
     $form = array();
 
     // TODO: simplify code for getting max(id), also in user page code
@@ -461,7 +463,8 @@ function gentle_saldo_overview_form() {
         }
 
 	    $row = $rs_item;
-        $saldoLink = '<a href="/user/' . $row->uid . '/saldo">' . $row->name . "</a>";
+        
+        $saldoLink = '<a href="' . $base_url . '/user/' . $row->uid . '/saldo">' . $row->name . "</a>";
         $html .= '<tr class="' . $rowclass . '"><td>' . $saldoLink . '</td><td>' . round($row->total, 2) . '</td></tr>';
         $index++;
     }
@@ -592,6 +595,8 @@ function gentle_saldo_overview_form_submit($form, &$form_state) {
  * The overview page for the relationships.
  */
 function gentle_saldo_parent_child_overview_form() {
+    global $base_url;
+
     $rs = db_query("SELECT r.id as 'rid', p.uid as 'parentId', p.name as 'Parent', c.uid as 'childId', c.name as 'Child'
                     FROM {gentle_saldo_parent_child} r
                         INNER JOIN {users} p ON p.uid = r.parent_uid
@@ -603,8 +608,8 @@ function gentle_saldo_parent_child_overview_form() {
 
     foreach ($rs as $rs_item) {
 	    $row = $rs_item;
-        $parentLink = '<a href="/user/' . $row->parentId . '/saldo">' . $row->Parent . "</a>";
-        $childLink = '<a href="/user/' . $row->childId . '/saldo">' . $row->Child . "</a>";
+        $parentLink = '<a href="' . $base_url . '/user/' . $row->parentId . '/saldo">' . $row->Parent . "</a>";
+        $childLink = '<a href="' . $base_url . '/user/' . $row->childId . '/saldo">' . $row->Child . "</a>";
         
         $rows[$row->rid] = array(
           'parent' => $parentLink,
@@ -619,7 +624,7 @@ function gentle_saldo_parent_child_overview_form() {
     
     $form = array();
 
-    $form['#prefix'] = "<p><a href='/admin/gentle_saldo/relationships/add'>" . t("Toevoegen") . "</a></p>";
+    $form['#prefix'] = "<p><a href='" . $base_url . "/admin/gentle_saldo/relationships/add'>" . t("Toevoegen") . "</a></p>";
 
     $form['gentle_saldo_relationship_overview'] = array(
         '#type' => 'tableselect',
