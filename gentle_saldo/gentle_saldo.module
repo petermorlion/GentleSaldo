@@ -701,6 +701,7 @@ function gentle_saldo_update_saldos($saldoFileUri) {
 
     try {
         while(($line = fgets($fp_saldo, $buffer)) ){
+			$line = mb_convert_encoding($line, 'ANSI');
 	        $total_line_counter++;
 	        $line_stripped = preg_replace("/\t/", "", $line); //alle tabs uit lijn weghalen (voor check op lege lijnen)
 	        if ($line_stripped != "\n" && $line_stripped != "\r\n"){ // als lijn niet leeg is, lijn processen
