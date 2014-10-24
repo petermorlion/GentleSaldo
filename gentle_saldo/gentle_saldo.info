@@ -2,5 +2,5 @@ name = Gentle Saldo
 description = A custom module for Gentle Ultimate Frisbee and how much the members have to pay.
 package = Gentle Ultimate
 core = 7.x
-version = 7.x-2.3
+version = 7.x-2.4
 dependencies[] = mimemail
