@@ -48,7 +48,7 @@ function gentle_saldo_menu() {
     );
     
     $items['admin/gentle_saldo/overview'] = array(
-        'title' => 'Overzicht',
+        'title' => 'Overview',
         'description' => 'Overview of the Gentle saldos.',
         'page callback' => 'gentle_saldo_overview',
         'page arguments' => array(1),
@@ -68,7 +68,7 @@ function gentle_saldo_menu() {
     );
 
     $items['admin/gentle_saldo/relationships'] = array(
-        'title' => 'Ouder-kind',
+        'title' => 'Parent-child',
         'description' => 'Overview of the parent-child relationships.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_parent_child_overview_form'),
@@ -78,7 +78,7 @@ function gentle_saldo_menu() {
     );
 
     $items['admin/gentle_saldo/relationships/add'] = array(
-        'title' => 'Ouder-kind relatie toevoegen',
+        'title' => 'Add parent-child relationship',
         'description' => 'Add a parent-child relationship',
         'page callback' => 'gentle_saldo_parent_child_add',
         'page arguments' => array(1),
@@ -86,7 +86,7 @@ function gentle_saldo_menu() {
     );
 
     $items['admin/gentle_saldo/settings'] = array(
-        'title' => 'Instellingen',
+        'title' => 'Settings',
         'description' => 'Configuration for the Gentle saldo system.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('gentle_saldo_settings'),
@@ -213,8 +213,8 @@ function gentle_saldo_user_saldo_html($uid) {
         $account = user_load($uid);
         $userName = $account->name;
         $html = "";
-        $html .= "<h2>" . t("Financieel overzicht: update van ") . date("d-m-Y", $row->date) . t(" voor ") . $userName . "</h2>"; 
-        $html .= "<p>" . t("Opmerking: ") . $row->remarks . "</p>";
+        $html .= "<h2>" . t("Financial overview: update from ") . date("d-m-Y", $row->date) . t(" for ") . $userName . "</h2>"; 
+        $html .= "<p>" . t("Remarks: ") . $row->remarks . "</p>";
 
         $rs = db_query("SELECT cu.name as 'childname'
                         FROM {gentle_saldo_parent_child} r
@@ -230,17 +230,17 @@ function gentle_saldo_user_saldo_html($uid) {
         }
 
         if (count($children) > 0) {
-            $html .= "<p>" . t("Je ziet ook de gegevens van ");
+            $html .= "<p>" . t("You can also see the transactions of ");
             $html .= implode(", ", $children) . ".";
         }
         
         $html .= "<table><thead><tr>";
-	    $html .= "<th>" . t("Datum") . "</th>";
-        $html .= "<th>" . t("Gebruiker") . "</th>";
+	    $html .= "<th>" . t("Date") . "</th>";
+        $html .= "<th>" . t("User") . "</th>";
 	    $html .= "<th>" . t("Cumul") . "</th>";
-	    $html .= "<th>" . t("Bedrag") . "</th>";
-	    $html .= "<th>" . t("Beschrijving") . "</th>";
-	    $html .= "<th>" . t("Opmerkingen") . "</th>";
+	    $html .= "<th>" . t("Amount") . "</th>";
+	    $html .= "<th>" . t("Description") . "</th>";
+	    $html .= "<th>" . t("Remarks") . "</th>";
 	    $html .= "</tr></thead><tbody>";
 
         $rs = db_query("SELECT t.amount, t.description, t.remarks, t.date, 
@@ -288,7 +288,7 @@ function gentle_saldo_user_saldo_html($uid) {
 	    }
 	
 	    $html .= "</tbody></table><br /><br />";
-	    $html .= "<strong>" . t("HUIDIG SALDO: ") . $cumul . "</strong>";   
+	    $html .= "<strong>" . t("CURRENT SALDO: ") . $cumul . "</strong>";   
     }
 
     $html .= "<br /><br />";
@@ -800,17 +800,17 @@ function gentle_saldo_parent_child_add_form() {
 
     $form['gentle_saldo_parent'] = array(
         '#type' => 'select',
-        '#title' => t('Ouder'),
+        '#title' => t('Parent'),
         '#options' => $options,
-        '#description' => t("De ouder"),
+        '#description' => t("The parent"),
         '#required' => TRUE,
     );
 
     $form['gentle_saldo_child'] = array(
         '#type' => 'select',
-        '#title' => t('Kind'),
+        '#title' => t('Child'),
         '#options' => $options,
-        '#description' => t("Het kind waarvoor de ouder het saldo kan zien."),
+        '#description' => t("The child for which the parent can see the saldo."),
         '#required' => TRUE,
     );
 
