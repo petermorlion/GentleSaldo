@@ -390,6 +390,7 @@ function gentle_saldo_update_form_validate($form, &$form_state) {
 function gentle_saldo_update_form_submit($form, &$form_state) {
     $total_line_counter = 0;
     $empty_line_counter = 0;
+    $user_counter = 0;
     $cntr = 0;
     $header_processed = false;
     $header = "";
@@ -430,6 +431,7 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
 		        else { //header is geprocessed, nu transacties inlezen en schrijven naar db
                     if (trim($tokens[2]) == "totaal"){
 				        $speler_processed = true;
+                        $user_counter++;
 			        }
 			        else {
 				        if ($speler_processed == true){
@@ -444,11 +446,11 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
                         $opmerking = mb_check_encoding(trim($tokens[6]), 'UTF-8') ? trim($tokens[6]) : utf8_encode(trim($tokens[6]));
 
                         if ($id_speler == '') {
-                            continue; // TODO: counter on how many were empty?
+                            continue;
                         }
 
                         if (!user_load($id_speler)) {
-                            continue; // TODO: counter on how many were skipped?
+                            continue;
                         }
 
                         db_insert('gentle_saldo_transaction')
@@ -469,8 +471,8 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
 	        else $empty_line_counter++;
         }
     
-        drupal_set_message(t('Added !counter records from !total_rows (!empty_rows empty rows).', 
-            array('!counter' => $cntr, '!total_rows' => $total_line_counter, '!empty_rows' => $empty_line_counter)), 'status');   
+        drupal_set_message(t('Updated the saldo for !user_counter user(s).',
+            array('!user_counter' => $user_counter)), 'status');   
     } catch (Exception $e) {
         drupal_set_message($e->getMessage(), 'error');
     }
