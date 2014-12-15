@@ -138,7 +138,7 @@ function gentle_saldo_user_saldo_title($uid) {
     if ($saldo == NULL) {
         return t('Saldo');
     } else {
-        return t('Saldo (' . round($saldo, 2) . ')');
+        return t('Saldo') . round($saldo, 2);
     }
 }
 
