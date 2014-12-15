@@ -401,6 +401,8 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
     $naam_speler = "";
     $speler_processed = true;
 
+    $unknown_user_ids = array();
+
     $all_lines = $form_state['values']['gentle_saldo_update_file_contents'];
 
     try {
@@ -450,6 +452,10 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
                         }
 
                         if (!user_load($id_speler)) {
+                            if (!in_array($id_speler, $unknown_user_ids)) {
+                                $unknown_user_ids[] = $id_speler;
+                            }
+                            
                             continue;
                         }
 
@@ -471,8 +477,11 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
 	        else $empty_line_counter++;
         }
     
-        drupal_set_message(t('Updated the saldo for !user_counter user(s).',
-            array('!user_counter' => $user_counter)), 'status');   
+        drupal_set_message(t('Updated the saldo for !user_counter user(s).', array('!user_counter' => $user_counter)), 'status');
+        
+        if (sizeof($unknown_user_ids) > 0) {
+            drupal_set_message(t('Unknown user ids: !unknown_user_ids.', array('!unknown_user_ids' => implode(', ', $unknown_user_ids))), 'warning');
+        }
     } catch (Exception $e) {
         drupal_set_message($e->getMessage(), 'error');
     }
