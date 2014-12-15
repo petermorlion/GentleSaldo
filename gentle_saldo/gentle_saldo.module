@@ -402,6 +402,7 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
     $speler_processed = true;
 
     $unknown_user_ids = array();
+    $players_without_id = array();
 
     $all_lines = $form_state['values']['gentle_saldo_update_file_contents'];
 
@@ -440,6 +441,10 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
 					        $id_speler = htmlspecialchars(trim($tokens[0]), ENT_QUOTES, "cp1252");
 					        $naam_speler = htmlspecialchars(trim($tokens[1]), ENT_QUOTES, "cp1252");
 					        $speler_processed = false;
+
+                            if ($id_speler == '') {
+                                $players_without_id[] = $naam_speler;
+                            }
 				        }
 
 				        $datum = gentle_saldo_datestring_to_timestamp($tokens[2]);
@@ -481,6 +486,10 @@ function gentle_saldo_update_form_submit($form, &$form_state) {
         
         if (sizeof($unknown_user_ids) > 0) {
             drupal_set_message(t('Unknown user ids: !unknown_user_ids.', array('!unknown_user_ids' => implode(', ', $unknown_user_ids))), 'warning');
+        }
+
+        if (sizeof($players_without_id) > 0) {
+            drupal_set_message(t('No id specified for: !players_without_id.', array('!players_without_id' => implode(',', $players_without_id))), 'warning');
         }
     } catch (Exception $e) {
         drupal_set_message($e->getMessage(), 'error');

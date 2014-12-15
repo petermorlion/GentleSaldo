@@ -27,7 +27,7 @@
 		9/04/2013	-20	60	Test nieuwe module 2	
  	 	totaal	40
 		
-	Peter Morlion	1/01/2013	0	-80	Test nieuwe module	kristof.morlion@me.com
+	Player NoID		1/01/2013	0	-80	Test nieuwe module	kristof.morlion@me.com
  	 	8/04/2013	-80	60	Test nieuwe module 2	
 		9/04/2013	-20	60	Test nieuwe module 2	
  	 	totaal	40
